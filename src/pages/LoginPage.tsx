@@ -1,17 +1,18 @@
-import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { useRouter } from '../lib/router';
 
 export function LoginPage() {
   const { user, signIn } = useAuth();
+  const { state, navigate } = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  if (user) return <Navigate to="/" replace />;
+  useEffect(() => {
+    if (user) navigate('/', { replace: true });
+  }, [navigate, user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,7 +20,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await signIn(email.trim(), password);
-      const nextPath = (location.state as { from?: string } | null)?.from ?? '/';
+      const nextPath = (state as { from?: string } | null)?.from ?? '/';
       navigate(nextPath, { replace: true });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to sign in.');
