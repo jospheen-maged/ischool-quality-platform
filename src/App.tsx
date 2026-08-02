@@ -1,7 +1,8 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, type ReactNode } from 'react';
 import { AuthProvider } from './auth/AuthProvider';
 import { AppShell } from './components/AppShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RouterProvider, useRouter } from './lib/router';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
@@ -9,42 +10,49 @@ import { NewEvaluationPage } from './pages/NewEvaluationPage';
 import { ObjectionsPage } from './pages/ObjectionsPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 
+const knownPaths = new Set(['/', '/login', '/reviews', '/objections', '/evaluations/new', '/analytics']);
+
+function ApplicationRoutes() {
+  const { pathname, navigate } = useRouter();
+
+  useEffect(() => {
+    if (!knownPaths.has(pathname)) navigate('/', { replace: true });
+  }, [navigate, pathname]);
+
+  if (pathname === '/login') return <LoginPage />;
+
+  let page: ReactNode = <DashboardPage />;
+
+  if (pathname === '/reviews') page = <ReviewsPage />;
+  if (pathname === '/objections') page = <ObjectionsPage />;
+  if (pathname === '/evaluations/new') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']}>
+        <NewEvaluationPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/analytics') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+        <AnalyticsPage />
+      </ProtectedRoute>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <AppShell>{page}</AppShell>
+    </ProtectedRoute>
+  );
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <RouterProvider>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppShell />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<DashboardPage />} />
-            <Route path="reviews" element={<ReviewsPage />} />
-            <Route path="objections" element={<ObjectionsPage />} />
-            <Route
-              path="evaluations/new"
-              element={
-                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']}>
-                  <NewEvaluationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="analytics"
-              element={
-                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
-                  <AnalyticsPage />
-                </ProtectedRoute>
-              }
-            />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <ApplicationRoutes />
       </AuthProvider>
-    </BrowserRouter>
+    </RouterProvider>
   );
 }
