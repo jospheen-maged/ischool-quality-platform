@@ -59,6 +59,10 @@ export function useRouter() {
   return context;
 }
 
+export function useNavigate() {
+  return useRouter().navigate;
+}
+
 type AppLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   to: string;
   exact?: boolean;
