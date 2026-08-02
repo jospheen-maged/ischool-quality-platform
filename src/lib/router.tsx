@@ -63,6 +63,16 @@ export function useNavigate() {
   return useRouter().navigate;
 }
 
+export function useLocation() {
+  const { pathname, state } = useRouter();
+  return { pathname, state };
+}
+
+export function useSearchParams() {
+  const { searchParams } = useRouter();
+  return [searchParams] as const;
+}
+
 type AppLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   to: string;
   exact?: boolean;
@@ -107,3 +117,5 @@ export function AppLink({
     </a>
   );
 }
+
+export const Link = AppLink;
