@@ -1,7 +1,8 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import type { PropsWithChildren } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { AppLink } from '../lib/router';
 
-export function AppShell() {
+export function AppShell({ children }: PropsWithChildren) {
   const { profile, signOut } = useAuth();
   const canEvaluate = profile?.role === 'qc' || profile?.role === 'qtl' || profile?.role === 'admin' || profile?.role === 'super_admin';
   const canManage = profile?.role === 'qtl' || profile?.role === 'admin' || profile?.role === 'super_admin';
@@ -18,11 +19,11 @@ export function AppShell() {
         </div>
 
         <nav className="nav-list" aria-label="Primary navigation">
-          <NavLink to="/" end>Dashboard</NavLink>
-          {canEvaluate && <NavLink to="/evaluations/new">New Evaluation</NavLink>}
-          <NavLink to="/reviews">Reviews</NavLink>
-          <NavLink to="/objections">Objections</NavLink>
-          {canManage && <NavLink to="/analytics">Analytics</NavLink>}
+          <AppLink to="/" exact>Dashboard</AppLink>
+          {canEvaluate && <AppLink to="/evaluations/new">New Evaluation</AppLink>}
+          <AppLink to="/reviews">Reviews</AppLink>
+          <AppLink to="/objections">Objections</AppLink>
+          {canManage && <AppLink to="/analytics">Analytics</AppLink>}
         </nav>
 
         <div className="sidebar-footer">
@@ -35,7 +36,7 @@ export function AppShell() {
       </aside>
 
       <main className="main-content">
-        <Outlet />
+        {children}
       </main>
     </div>
   );
