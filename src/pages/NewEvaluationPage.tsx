@@ -80,15 +80,16 @@ export function NewEvaluationPage() {
   }, [answers, criteria]);
 
   function updateAnswer(criterionId: string, patch: Partial<Answer>) {
-    setAnswers((current) => ({
-      ...current,
-      [criterionId]: {
-        timestamp: '',
-        evidence: '',
-        ...current[criterionId],
-        ...patch,
-      },
-    }));
+    setAnswers((current) => {
+      const existing = current[criterionId] ?? { timestamp: '', evidence: '' };
+      return {
+        ...current,
+        [criterionId]: {
+          ...existing,
+          ...patch,
+        },
+      };
+    });
   }
 
   async function saveReview(status: 'draft' | 'submitted') {
