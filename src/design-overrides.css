@@ -1,0 +1,55 @@
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--blue);
+  box-shadow: none;
+}
+
+.criterion-card > .content-grid {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.criterion-card > .content-grid > div {
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.criterion-card > .content-grid strong {
+  color: var(--navy);
+  font-size: 0.7rem;
+}
+
+.criterion-card > .content-grid p {
+  margin: 0.3rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.criteria-list .criterion-card:nth-child(6n + 1) .criterion-code { color: var(--blue); background: var(--blue-soft); }
+.criteria-list .criterion-card:nth-child(6n + 2) .criterion-code { color: #a76500; background: var(--orange-soft); }
+.criteria-list .criterion-card:nth-child(6n + 3) .criterion-code { color: #087553; background: var(--green-soft); }
+.criteria-list .criterion-card:nth-child(6n + 4) .criterion-code { color: #5a42bb; background: var(--purple-soft); }
+.criteria-list .criterion-card:nth-child(6n + 5) .criterion-code { color: #08708a; background: #e9faff; }
+.criteria-list .criterion-card:nth-child(6n + 6) .criterion-code { color: #566a7c; background: #eef2f5; }
+
+@media (max-width: 900px) {
+  .checkbox-row { justify-content: flex-start; }
+  .criterion-card > .content-grid { grid-template-columns: 1fr; }
+}
