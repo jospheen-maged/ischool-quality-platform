@@ -49,7 +49,146 @@
 .criteria-list .criterion-card:nth-child(6n + 5) .criterion-code { color: #08708a; background: #e9faff; }
 .criteria-list .criterion-card:nth-child(6n + 6) .criterion-code { color: #566a7c; background: #eef2f5; }
 
+/* Official iSchool brand treatment */
+:root {
+  --ischool-blue: #056fec;
+  --ischool-blue-dark: #034fae;
+  --ischool-blue-deep: #023b84;
+  --ischool-yellow: #ffd700;
+  --ischool-orange: #ff7f1c;
+}
+
+.sidebar {
+  background:
+    radial-gradient(circle at 18% 5%, rgba(255, 215, 0, 0.14), transparent 11rem),
+    radial-gradient(circle at 92% 88%, rgba(255, 127, 28, 0.14), transparent 14rem),
+    linear-gradient(180deg, var(--ischool-blue-deep) 0%, var(--ischool-blue-dark) 44%, var(--ischool-blue) 100%);
+  box-shadow: 18px 0 52px rgba(3, 79, 174, 0.18);
+}
+
+.brand-block {
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 0.8rem;
+}
+
+.brand-logo-wrap {
+  height: 48px;
+  padding: 0.36rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 34, 91, 0.22);
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-product strong {
+  color: #ffffff;
+  font-size: 0.98rem;
+}
+
+.brand-product span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.sidebar-label {
+  color: var(--ischool-yellow);
+}
+
+.nav-list a {
+  color: rgba(255, 255, 255, 0.78);
+  border-color: transparent;
+}
+
+.nav-list a:hover {
+  color: #ffffff;
+  border-color: rgba(255, 215, 0, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-list a.active {
+  position: relative;
+  color: var(--ischool-blue-deep);
+  border-color: rgba(255, 255, 255, 0.92);
+  background: #ffffff;
+  box-shadow: 0 14px 30px rgba(0, 42, 105, 0.23);
+}
+
+.nav-list a.active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 9px;
+  bottom: 9px;
+  width: 4px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(180deg, var(--ischool-yellow), var(--ischool-orange));
+}
+
+.nav-list a.active .nav-icon {
+  color: var(--ischool-orange);
+}
+
+.sidebar-insight {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.insight-dot {
+  background: var(--ischool-yellow);
+  box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.16);
+}
+
+.sidebar-insight strong {
+  color: #ffffff;
+}
+
+.sidebar-insight p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.sidebar-footer {
+  border-top-color: rgba(255, 255, 255, 0.18);
+}
+
+.user-avatar {
+  color: var(--ischool-blue-deep);
+  background: linear-gradient(145deg, var(--ischool-yellow), #ffec70);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.2);
+}
+
+.user-chip span {
+  color: #ffffff;
+}
+
+.user-chip small {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.button-ghost {
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.button-ghost:hover {
+  color: var(--ischool-blue-deep);
+  border-color: var(--ischool-yellow);
+  background: var(--ischool-yellow);
+}
+
+.topbar-status span {
+  background: var(--ischool-orange);
+  box-shadow: 0 0 0 4px rgba(255, 127, 28, 0.13);
+}
+
 @media (max-width: 900px) {
   .checkbox-row { justify-content: flex-start; }
   .criterion-card > .content-grid { grid-template-columns: 1fr; }
+  .brand-block { grid-template-columns: 86px minmax(0, 1fr); }
+  .brand-logo-wrap { height: 44px; }
 }
