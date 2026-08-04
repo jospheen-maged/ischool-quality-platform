@@ -1,14 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  resolve: {
-    alias: {
-      'react-router-dom': '/src/lib/router.tsx',
-    },
-  },
+  base: command === 'build' ? '/ischool-quality-platform/' : '/',
   server: {
     port: 5173,
   },
-});
+}));
