@@ -9,6 +9,14 @@ export type Profile = {
   is_active: boolean;
 };
 
+export type ComplianceResult =
+  | 'clear'
+  | 'coaching_note'
+  | 'yellow_flag'
+  | 'red_flag'
+  | 'external_cause'
+  | 'not_applicable';
+
 export type EvaluationCriterion = {
   id: string;
   section_id: string;
@@ -16,6 +24,10 @@ export type EvaluationCriterion = {
   title: string;
   description: string | null;
   max_score: number;
+  weight_percentage: number;
+  anchor_1: string | null;
+  anchor_3: string | null;
+  anchor_5: string | null;
   sort_order: number;
   criterion_type: 'rating' | 'compliance';
 };
@@ -28,7 +40,9 @@ export type ReviewSummary = {
   session_topic: string | null;
   status: string;
   total_score: number | null;
+  maximum_score: number | null;
   score_percentage: number | null;
+  compliance_status: string;
   published_at: string | null;
   created_at: string;
 };
