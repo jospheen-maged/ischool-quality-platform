@@ -33,7 +33,7 @@ jobs:
         run: npm run typecheck
 
       - name: Build application
-        run: npm run build
+        run: npm run build -- --mode github-pages
         env:
           VITE_SUPABASE_URL: https://mxfeyumgdlmiplognpry.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_8B_2gV3-U1QTA0J9wfsFrg_IhAD-9Av
