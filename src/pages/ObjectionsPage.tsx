@@ -16,11 +16,18 @@ type ObjectionRow = {
   decision: string | null;
   decision_notes: string | null;
   assigned_reviewer_id: string | null;
+  reviewer_recommendation: ObjectionDecision | null;
+  reviewer_notes: string | null;
+  proposed_score: number | null;
+  proposed_flag_action: 'remove' | 'downgrade_to_yellow' | null;
+  approval_status: 'pending' | 'approved' | 'declined' | null;
+  approval_notes: string | null;
   score_changed: boolean;
   flag_changed: boolean;
   review: { id: string; session_date: string | null; session_topic: string | null; status: string } | null;
   tutor: { full_name: string; employee_code: string } | null;
   assigned_reviewer: { id: string; full_name: string } | null;
+  approver: { id: string; full_name: string } | null;
   target_score: {
     id: string;
     numeric_score: number | null;
@@ -91,11 +98,18 @@ const objectionSelect = `
   decision,
   decision_notes,
   assigned_reviewer_id,
+  reviewer_recommendation,
+  reviewer_notes,
+  proposed_score,
+  proposed_flag_action,
+  approval_status,
+  approval_notes,
   score_changed,
   flag_changed,
   review:reviews(id, session_date, session_topic, status),
   tutor:tutors(full_name, employee_code),
   assigned_reviewer:profiles!objections_assigned_reviewer_id_fkey(id, full_name),
+  approver:profiles!objections_qtl_approved_by_fkey(id, full_name),
   target_score:review_scores!objections_target_score_id_fkey(
     id,
     numeric_score,
@@ -143,10 +157,11 @@ export function ObjectionsPage() {
   const [explanation, setExplanation] = useState('');
   const [requestedOutcome, setRequestedOutcome] = useState('');
 
-  const [decision, setDecision] = useState<ObjectionDecision>('accepted');
-  const [decisionNotes, setDecisionNotes] = useState('');
-  const [newScore, setNewScore] = useState('2');
-  const [flagAction, setFlagAction] = useState<'remove' | 'downgrade_to_yellow'>('remove');
+  const [recommendation, setRecommendation] = useState<ObjectionDecision>('accepted');
+  const [reviewerNotes, setReviewerNotes] = useState('');
+  const [proposedScore, setProposedScore] = useState('2');
+  const [proposedFlagAction, setProposedFlagAction] = useState<'remove' | 'downgrade_to_yellow'>('remove');
+  const [approvalNotes, setApprovalNotes] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
@@ -156,8 +171,9 @@ export function ObjectionsPage() {
   const [notice, setNotice] = useState('');
 
   const isTutor = profile?.role === 'tutor';
-  const isStaff = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'qtl' || profile?.role === 'qc';
-  const isManagement = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'qtl';
+  const isQC = profile?.role === 'qc';
+  const isApprover = profile?.role === 'super_admin' || profile?.role === 'qtl';
+  const isStaff = ['super_admin', 'admin', 'qtl', 'qc'].includes(profile?.role ?? '');
 
   async function loadObjections(preferredId?: string | null) {
     setLoading(true);
@@ -216,7 +232,7 @@ export function ObjectionsPage() {
           .select('id, numeric_score, evidence, criterion:evaluation_criteria(code, title)')
           .eq('review_id', reviewId)
           .eq('is_observed', true)
-          .lte('numeric_score', 1),
+          .eq('numeric_score', 1),
       ]);
 
       const firstError = reviewResult.error || flagsResult.error || scoresResult.error;
@@ -257,23 +273,33 @@ export function ObjectionsPage() {
     [rows, selectedObjectionId],
   );
 
-  const pendingCount = rows.filter((row) => row.status === 'submitted').length;
-  const inReviewCount = rows.filter((row) => row.status === 'under_review' || row.status === 'evidence_required').length;
-  const decidedCount = rows.filter((row) => row.status === 'decision_issued' || row.status === 'closed').length;
-  const canResolveSelected = Boolean(
-    isStaff
+  const submittedCount = rows.filter((row) => row.status === 'submitted').length;
+  const qcReviewCount = rows.filter((row) => ['under_review', 'evidence_required'].includes(row.status)).length;
+  const awaitingApprovalCount = rows.filter((row) => row.status === 'awaiting_qtl').length;
+  const resolvedCount = rows.filter((row) => ['decision_issued', 'closed'].includes(row.status)).length;
+
+  const canQCRecommend = Boolean(
+    isQC
     && selectedObjection
-    && !['decision_issued', 'closed'].includes(selectedObjection.status)
-    && (isManagement || selectedObjection.assigned_reviewer_id === profile?.id),
+    && selectedObjection.assigned_reviewer_id === profile?.id
+    && ['under_review', 'evidence_required'].includes(selectedObjection.status),
+  );
+
+  const canApproveSelected = Boolean(
+    isApprover
+    && selectedObjection
+    && selectedObjection.status === 'awaiting_qtl'
+    && selectedObjection.reviewer_recommendation,
   );
 
   useEffect(() => {
     if (!selectedObjection) return;
-    setDecision('accepted');
-    setDecisionNotes('');
-    setNewScore(String(Math.max(2, Number(selectedObjection.target_score?.numeric_score ?? 1))));
-    setFlagAction('remove');
-  }, [selectedObjectionId]);
+    setRecommendation(selectedObjection.reviewer_recommendation ?? 'accepted');
+    setReviewerNotes(selectedObjection.reviewer_notes ?? '');
+    setProposedScore(String(selectedObjection.proposed_score ?? Math.max(2, Number(selectedObjection.target_score?.numeric_score ?? 1))));
+    setProposedFlagAction(selectedObjection.proposed_flag_action ?? 'remove');
+    setApprovalNotes('');
+  }, [selectedObjectionId, selectedObjection?.approval_status, selectedObjection?.status]);
 
   function changeTarget(value: string) {
     setTargetKey(value);
@@ -311,7 +337,7 @@ export function ObjectionsPage() {
     } else {
       setExplanation('');
       setRequestedOutcome('');
-      setNotice('Your objection was submitted and added to the review queue.');
+      setNotice('Your objection was submitted to the Quality Control queue.');
       await loadObjections();
     }
     setSaving(false);
@@ -328,14 +354,14 @@ export function ObjectionsPage() {
 
     if (claimError) setError(claimError.message);
     else {
-      setNotice('Objection assigned to you. You can now issue a decision.');
+      setNotice('Objection assigned to you. Review it and send your recommendation for approval.');
       await loadObjections(objectionId);
     }
 
     setActing(false);
   }
 
-  async function resolveObjection(event: FormEvent<HTMLFormElement>) {
+  async function submitRecommendation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedObjection) return;
 
@@ -343,30 +369,49 @@ export function ObjectionsPage() {
     setError('');
     setNotice('');
 
-    const appliesReviewChange = decision === 'accepted' || decision === 'partially_accepted';
-    const scoreValue = selectedObjection.object_type === 'criterion_score' && appliesReviewChange
-      ? Number(newScore)
+    const proposesChange = recommendation === 'accepted' || recommendation === 'partially_accepted';
+    const scoreValue = selectedObjection.object_type === 'criterion_score' && proposesChange
+      ? Number(proposedScore)
       : null;
-    const nextFlagAction = selectedObjection.object_type === 'flag' && appliesReviewChange
-      ? flagAction
+    const flagValue = selectedObjection.object_type === 'flag' && proposesChange
+      ? proposedFlagAction
       : null;
 
-    const { error: resolveError } = await supabase.rpc('resolve_objection', {
+    const { error: recommendationError } = await supabase.rpc('submit_objection_recommendation', {
       p_objection_id: selectedObjection.id,
-      p_decision: decision,
-      p_decision_notes: decisionNotes.trim(),
-      p_new_score: scoreValue,
-      p_flag_action: nextFlagAction,
+      p_recommendation: recommendation,
+      p_reviewer_notes: reviewerNotes.trim(),
+      p_proposed_score: scoreValue,
+      p_proposed_flag_action: flagValue,
     });
 
-    if (resolveError) setError(resolveError.message);
+    if (recommendationError) setError(recommendationError.message);
     else {
-      const message = decision === 'rejected'
-        ? 'Objection rejected. The published review was not changed.'
-        : decision === 'more_evidence_required'
-          ? 'More evidence requested from the tutor.'
-          : 'Decision saved and the published review was updated.';
-      setNotice(message);
+      setNotice('QC recommendation submitted. The review is unchanged until Super Admin or QTL approval.');
+      await loadObjections(selectedObjection.id);
+    }
+
+    setActing(false);
+  }
+
+  async function approveRecommendation(approve: boolean) {
+    if (!selectedObjection) return;
+
+    setActing(true);
+    setError('');
+    setNotice('');
+
+    const { error: approvalError } = await supabase.rpc('approve_objection_recommendation', {
+      p_objection_id: selectedObjection.id,
+      p_approve: approve,
+      p_approval_notes: approvalNotes.trim(),
+    });
+
+    if (approvalError) setError(approvalError.message);
+    else {
+      setNotice(approve
+        ? 'QC decision approved. Any approved score or flag change is now applied to the published review.'
+        : 'QC decision declined and returned to the assigned QC for revision.');
       await loadObjections(selectedObjection.id);
     }
 
@@ -382,7 +427,7 @@ export function ObjectionsPage() {
           <p>
             {isTutor
               ? 'You can object only to an active yellow/red flag or an observed teaching score of 1.'
-              : 'Management can see every objection. QC reviewers can claim independent cases, issue decisions, and apply approved review changes.'}
+              : 'QC reviews the objection and proposes the change. Only Super Admin or QTL can approve or decline the recommendation.'}
           </p>
         </div>
       </header>
@@ -392,10 +437,10 @@ export function ObjectionsPage() {
 
       {isStaff && (
         <section className="people-summary-grid objection-summary-grid" aria-label="Objection summary">
-          <article><span className="people-summary-icon people-summary-blue">{rows.length}</span><div><small>Total visible</small><strong>{rows.length}</strong></div></article>
-          <article><span className="people-summary-icon people-summary-orange">{pendingCount}</span><div><small>Waiting assignment</small><strong>{pendingCount}</strong></div></article>
-          <article><span className="people-summary-icon people-summary-violet">{inReviewCount}</span><div><small>Under review</small><strong>{inReviewCount}</strong></div></article>
-          <article><span className="people-summary-icon people-summary-green">{decidedCount}</span><div><small>Decision issued</small><strong>{decidedCount}</strong></div></article>
+          <article><span className="people-summary-icon people-summary-orange">{submittedCount}</span><div><small>Waiting for QC</small><strong>{submittedCount}</strong></div></article>
+          <article><span className="people-summary-icon people-summary-violet">{qcReviewCount}</span><div><small>QC review</small><strong>{qcReviewCount}</strong></div></article>
+          <article><span className="people-summary-icon people-summary-blue">{awaitingApprovalCount}</span><div><small>Awaiting approval</small><strong>{awaitingApprovalCount}</strong></div></article>
+          <article><span className="people-summary-icon people-summary-green">{resolvedCount}</span><div><small>Resolved</small><strong>{resolvedCount}</strong></div></article>
         </section>
       )}
 
@@ -419,7 +464,7 @@ export function ObjectionsPage() {
             <form className="form-grid" onSubmit={submitObjection}>
               <label className="full-width">Objection item<select value={targetKey} onChange={(event) => changeTarget(event.target.value)} required>
                 {eligibleFlags.map((flag) => <option key={flag.id} value={`flag:${flag.id}`}>{flag.level.toUpperCase()} flag — {flag.criterion?.title || 'Compliance item'}</option>)}
-                {eligibleScores.map((score) => <option key={score.id} value={`criterion_score:${score.id}`}>Score {score.numeric_score ?? 1} — {score.criterion?.code ? `${score.criterion.code} · ` : ''}{score.criterion?.title || 'Teaching metric'}</option>)}
+                {eligibleScores.map((score) => <option key={score.id} value={`criterion_score:${score.id}`}>Score 1 — {score.criterion?.code ? `${score.criterion.code} · ` : ''}{score.criterion?.title || 'Teaching metric'}</option>)}
               </select></label>
               <label>Reason<select value={reasonCode} onChange={(event) => setReasonCode(event.target.value)}>{currentReasonOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label className="full-width">Explanation<textarea rows={5} required minLength={10} value={explanation} onChange={(event) => setExplanation(event.target.value)} placeholder="Explain the exact point and the evidence supporting your request…" /></label>
@@ -464,52 +509,104 @@ export function ObjectionsPage() {
               <h3>{allReasonOptions.find(([value]) => value === selectedObjection.reason_code)?.[1] ?? formatLabel(selectedObjection.reason_code)}</h3>
               <p>{selectedObjection.explanation}</p>
               {selectedObjection.requested_outcome && <><small>Requested outcome</small><p>{selectedObjection.requested_outcome}</p></>}
-              <small>Reviewer</small>
+              <small>Assigned QC</small>
               <p>{selectedObjection.assigned_reviewer?.full_name || 'Not assigned yet'}</p>
             </article>
           </div>
 
-          {!selectedObjection.assigned_reviewer_id && profile?.role === 'qc' && (
+          {selectedObjection.approval_status === 'declined' && selectedObjection.status === 'under_review' && (
+            <div className="alert alert-error objection-issued-decision">
+              <strong>Recommendation returned to QC</strong>
+              <span>{selectedObjection.approval_notes || 'The approver requested a revision.'}</span>
+              {selectedObjection.approver?.full_name && <span>Returned by {selectedObjection.approver.full_name}</span>}
+            </div>
+          )}
+
+          {!selectedObjection.assigned_reviewer_id && isQC && (
             <div className="objection-claim-row">
-              <p>This objection is unassigned. Claim it before issuing a decision.</p>
+              <p>This objection is available in the independent QC queue. Take it before proposing a decision.</p>
               <button className="button button-primary" type="button" disabled={acting} onClick={() => void claimObjection(selectedObjection.id)}>{acting ? 'Assigning…' : 'Take objection'}</button>
             </div>
           )}
 
-          {canResolveSelected && (
-            <form className="form-grid objection-decision-form" onSubmit={resolveObjection}>
-              <label>Decision<select value={decision} onChange={(event) => setDecision(event.target.value as ObjectionDecision)}>
-                <option value="accepted">Accept</option>
+          {canQCRecommend && (
+            <form className="form-grid objection-decision-form" onSubmit={submitRecommendation}>
+              <div className="full-width objection-workflow-note">
+                <strong>QC recommendation</strong>
+                <span>Your proposed edit will remain pending until Super Admin or QTL approval.</span>
+              </div>
+
+              <label>Recommendation<select value={recommendation} onChange={(event) => setRecommendation(event.target.value as ObjectionDecision)}>
+                <option value="accepted">Accept objection</option>
                 <option value="partially_accepted">Partially accept</option>
-                <option value="rejected">Reject</option>
+                <option value="rejected">Reject objection</option>
                 <option value="more_evidence_required">Request more evidence</option>
               </select></label>
 
-              {(decision === 'accepted' || decision === 'partially_accepted') && selectedObjection.object_type === 'criterion_score' && (
-                <label>New metric score<select value={newScore} onChange={(event) => setNewScore(event.target.value)}>
+              {(recommendation === 'accepted' || recommendation === 'partially_accepted') && selectedObjection.object_type === 'criterion_score' && (
+                <label>Proposed metric score<select value={proposedScore} onChange={(event) => setProposedScore(event.target.value)}>
                   <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
                 </select></label>
               )}
 
-              {(decision === 'accepted' || decision === 'partially_accepted') && selectedObjection.object_type === 'flag' && (
-                <label>Review change<select value={flagAction} onChange={(event) => setFlagAction(event.target.value as 'remove' | 'downgrade_to_yellow')}>
+              {(recommendation === 'accepted' || recommendation === 'partially_accepted') && selectedObjection.object_type === 'flag' && (
+                <label>Proposed flag change<select value={proposedFlagAction} onChange={(event) => setProposedFlagAction(event.target.value as 'remove' | 'downgrade_to_yellow')}>
                   <option value="remove">Remove flag</option>
                   {selectedObjection.target_flag?.level === 'red' && <option value="downgrade_to_yellow">Downgrade red to yellow</option>}
                 </select></label>
               )}
 
-              <label className="full-width">Decision notes<textarea rows={4} required minLength={5} value={decisionNotes} onChange={(event) => setDecisionNotes(event.target.value)} placeholder="Explain the final decision and the evidence used…" /></label>
+              <label className="full-width">QC review notes<textarea rows={4} required minLength={5} value={reviewerNotes} onChange={(event) => setReviewerNotes(event.target.value)} placeholder="Explain your recommendation and the evidence used…" /></label>
               <div className="full-width objection-decision-actions">
-                <button className="button button-primary" type="submit" disabled={acting}>{acting ? 'Saving decision…' : 'Save decision and update review'}</button>
+                <button className="button button-primary" type="submit" disabled={acting}>{acting ? 'Sending…' : 'Send recommendation for approval'}</button>
               </div>
             </form>
           )}
 
-          {selectedObjection.decision && (
+          {selectedObjection.reviewer_recommendation && (
+            <section className="objection-approval-card">
+              <div>
+                <span className="review-detail-kicker">QC recommendation</span>
+                <h3>{formatLabel(selectedObjection.reviewer_recommendation)}</h3>
+                <p>{selectedObjection.reviewer_notes || 'No QC notes recorded.'}</p>
+              </div>
+              <div className="objection-proposed-change">
+                <small>Proposed review change</small>
+                <strong>
+                  {selectedObjection.reviewer_recommendation === 'rejected'
+                    ? 'No change to the review'
+                    : selectedObjection.reviewer_recommendation === 'more_evidence_required'
+                      ? 'Request additional evidence'
+                      : selectedObjection.object_type === 'criterion_score'
+                        ? `Change metric score to ${selectedObjection.proposed_score ?? '—'} / 5`
+                        : selectedObjection.proposed_flag_action === 'remove'
+                          ? 'Remove the flag'
+                          : 'Downgrade red flag to yellow'}
+                </strong>
+              </div>
+
+              {canApproveSelected && (
+                <div className="objection-approval-actions">
+                  <label>Approval notes<textarea rows={3} required minLength={3} value={approvalNotes} onChange={(event) => setApprovalNotes(event.target.value)} placeholder="Add the reason for approval or return…" /></label>
+                  <div>
+                    <button className="people-secondary-button" type="button" disabled={acting || approvalNotes.trim().length < 3} onClick={() => void approveRecommendation(false)}>Decline & return to QC</button>
+                    <button className="button button-primary" type="button" disabled={acting || approvalNotes.trim().length < 3} onClick={() => void approveRecommendation(true)}>{acting ? 'Saving…' : 'Approve QC decision'}</button>
+                  </div>
+                </div>
+              )}
+
+              {!canApproveSelected && selectedObjection.status === 'awaiting_qtl' && (
+                <p className="muted">Waiting for Super Admin or QTL approval. The published review has not changed yet.</p>
+              )}
+            </section>
+          )}
+
+          {selectedObjection.decision && selectedObjection.approval_status === 'approved' && (
             <div className="alert alert-success objection-issued-decision">
-              <strong>{formatLabel(selectedObjection.decision)}</strong>
-              <span>{selectedObjection.decision_notes || 'Decision issued.'}</span>
-              {(selectedObjection.score_changed || selectedObjection.flag_changed) && <span>The published review was updated.</span>}
+              <strong>Final decision: {formatLabel(selectedObjection.decision)}</strong>
+              <span>{selectedObjection.decision_notes || 'Decision approved.'}</span>
+              {selectedObjection.approver?.full_name && <span>Approved by {selectedObjection.approver.full_name}</span>}
+              {(selectedObjection.score_changed || selectedObjection.flag_changed) && <span>The published review was updated after approval.</span>}
             </div>
           )}
         </section>
@@ -519,14 +616,14 @@ export function ObjectionsPage() {
         {loading ? <div className="empty-state">Loading objections…</div> : rows.length === 0 ? (
           <div className="empty-state"><h2>No objections yet</h2><p>{isStaff ? 'All objections visible to your role will appear here.' : 'Submitted objections and their decisions will appear here.'}</p></div>
         ) : (
-          <div className="table-wrap"><table><thead><tr><th>Review</th><th>Tutor</th><th>Objected item</th><th>Reviewer</th><th>Status</th><th>Decision</th>{isStaff && <th>Action</th>}</tr></thead><tbody>
+          <div className="table-wrap"><table><thead><tr><th>Review</th><th>Tutor</th><th>Objected item</th><th>QC reviewer</th><th>Status</th><th>Recommendation / decision</th>{isStaff && <th>Action</th>}</tr></thead><tbody>
             {rows.map((row) => <tr key={row.id} className={selectedObjectionId === row.id ? 'objection-selected-row' : ''}>
               <td><strong>{formatDate(row.review?.session_date)}</strong><span className="table-subtext">{row.review?.session_topic || 'Session evaluation'}</span></td>
               <td>{row.tutor ? `${row.tutor.employee_code} — ${row.tutor.full_name}` : '—'}</td>
               <td>{row.object_type === 'flag' ? `${row.target_flag?.level?.toUpperCase() || ''} flag` : `${row.target_score?.criterion?.code || 'Metric'} score`}</td>
               <td>{row.assigned_reviewer?.full_name || 'Unassigned'}</td>
               <td><span className={`status-badge status-${row.status}`}>{formatLabel(row.status)}</span></td>
-              <td>{formatLabel(row.decision)}</td>
+              <td>{formatLabel(row.decision || row.reviewer_recommendation)}</td>
               {isStaff && <td><button className="people-table-action" type="button" onClick={() => setSelectedObjectionId(row.id)}>Review case</button></td>}
             </tr>)}
           </tbody></table></div>
