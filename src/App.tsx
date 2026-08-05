@@ -4,14 +4,16 @@ import { AppShell } from './components/AppShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RouterProvider, useRouter } from './lib/router';
 
+const AccessPage = lazy(() => import('./pages/AccessPage').then((module) => ({ default: module.AccessPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const NewEvaluationPage = lazy(() => import('./pages/NewEvaluationPage').then((module) => ({ default: module.NewEvaluationPage })));
 const ObjectionsPage = lazy(() => import('./pages/ObjectionsPage').then((module) => ({ default: module.ObjectionsPage })));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
+const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/reviews', '/objections', '/evaluations/new', '/analytics']);
+const knownPaths = new Set(['/', '/login', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access']);
 
 function PageLoader() {
   return (
@@ -45,6 +47,20 @@ function ApplicationRoutes() {
     page = (
       <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
         <AnalyticsPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/tutors') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+        <TutorsPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/access') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin']}>
+        <AccessPage />
       </ProtectedRoute>
     );
   }
