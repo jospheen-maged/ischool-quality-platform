@@ -24,6 +24,10 @@ type TutorForm = {
 
 const emptyForm: TutorForm = { employeeCode: '', fullName: '', email: '', teamName: '', branchName: '' };
 
+function tutorInitials(name: string) {
+  return name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
+}
+
 export function TutorsPage() {
   const [tutors, setTutors] = useState<TutorRecord[]>([]);
   const [teams, setTeams] = useState<Lookup[]>([]);
@@ -49,9 +53,8 @@ export function TutorsPage() {
     ]);
 
     const firstError = tutorsResult.error || teamsResult.error || branchesResult.error;
-    if (firstError) {
-      setError(firstError.message);
-    } else {
+    if (firstError) setError(firstError.message);
+    else {
       setTutors((tutorsResult.data ?? []) as unknown as TutorRecord[]);
       setTeams((teamsResult.data ?? []) as Lookup[]);
       setBranches((branchesResult.data ?? []) as Lookup[]);
@@ -76,11 +79,7 @@ export function TutorsPage() {
     const existing = current.find((item) => item.name.toLowerCase() === cleanName.toLowerCase());
     if (existing) return existing.id;
 
-    const { data, error: insertError } = await supabase
-      .from(table)
-      .insert({ name: cleanName })
-      .select('id, name')
-      .single();
+    const { data, error: insertError } = await supabase.from(table).insert({ name: cleanName }).select('id, name').single();
     if (insertError) throw insertError;
     const created = data as Lookup;
     if (table === 'teams') setTeams((items) => [...items, created].sort((a, b) => a.name.localeCompare(b.name)));
@@ -118,10 +117,7 @@ export function TutorsPage() {
 
   async function toggleTutor(tutor: TutorRecord) {
     setError('');
-    const { error: updateError } = await supabase
-      .from('tutors')
-      .update({ is_active: !tutor.is_active })
-      .eq('id', tutor.id);
+    const { error: updateError } = await supabase.from('tutors').update({ is_active: !tutor.is_active }).eq('id', tutor.id);
     if (updateError) {
       setError(updateError.message);
       return;
@@ -129,29 +125,39 @@ export function TutorsPage() {
     setTutors((items) => items.map((item) => item.id === tutor.id ? { ...item, is_active: !item.is_active } : item));
   }
 
+  const activeTutors = tutors.filter((tutor) => tutor.is_active).length;
+
   return (
-    <div className="page-stack admin-page elegant-directory-page">
-      <header className="admin-page-header elegant-directory-header">
+    <div className="people-page">
+      <header className="people-header">
         <div>
-          <span className="elegant-page-kicker">Tutor directory</span>
+          <span className="people-kicker">Tutor directory</span>
           <h1>Tutors</h1>
-          <p>Add tutors, teams, and school branches directly from the workspace. Active tutors appear automatically in New Evaluation.</p>
+          <p>Add tutors, teams, and school branches. Active tutors appear automatically in New Evaluation.</p>
         </div>
-        <button className="button button-primary" type="button" onClick={() => setShowForm((value) => !value)}>
-          {showForm ? 'Close' : 'Add tutor'}
+        <button className="people-primary-button" type="button" onClick={() => setShowForm((value) => !value)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          {showForm ? 'Close form' : 'Add tutor'}
         </button>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
+      <section className="people-summary-grid" aria-label="Tutor summary">
+        <article><span className="people-summary-icon people-summary-blue"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8" /></svg></span><div><small>Total tutors</small><strong>{tutors.length}</strong></div></article>
+        <article><span className="people-summary-icon people-summary-green"><svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-4-9 3 3 5-6" /></svg></span><div><small>Active tutors</small><strong>{activeTutors}</strong></div></article>
+        <article><span className="people-summary-icon people-summary-violet"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 10h8M8 14h5" /></svg></span><div><small>Teams</small><strong>{teams.length}</strong></div></article>
+        <article><span className="people-summary-icon people-summary-orange"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13M8 21v-6h8v6" /></svg></span><div><small>Schools / branches</small><strong>{branches.length}</strong></div></article>
+      </section>
+
       {showForm && (
-        <form className="panel admin-form-card elegant-form-card" onSubmit={addTutor}>
-          <div className="admin-form-heading">
-            <div><span className="elegant-page-kicker">New tutor</span><h2>Add tutor details</h2></div>
-            <span>New team and school names are created automatically.</span>
+        <form className="people-invite-card" onSubmit={addTutor}>
+          <div className="people-form-heading">
+            <div><span className="people-kicker">New tutor record</span><h2>Add tutor details</h2><p>New team and school names are created automatically.</p></div>
+            <button className="people-icon-button" type="button" aria-label="Close form" onClick={() => { setForm(emptyForm); setShowForm(false); }}><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
           </div>
-          <div className="admin-form-grid">
+          <div className="tutor-form-grid">
             <label>Employee / Tutor ID<input value={form.employeeCode} onChange={(event) => setForm({ ...form, employeeCode: event.target.value })} placeholder="T-17746" required /></label>
             <label>Full name<input value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} placeholder="Tutor full name" required /></label>
             <label>Email address<input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="name@ischooltech.com" /></label>
@@ -160,40 +166,30 @@ export function TutorsPage() {
           </div>
           <datalist id="team-options">{teams.map((team) => <option key={team.id} value={team.name} />)}</datalist>
           <datalist id="branch-options">{branches.map((branch) => <option key={branch.id} value={branch.name} />)}</datalist>
-          <div className="admin-form-actions">
-            <button className="button elegant-secondary-button" type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }}>Cancel</button>
-            <button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Adding tutor…' : 'Add tutor'}</button>
-          </div>
+          <div className="people-form-actions"><button className="people-secondary-button" type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }}>Cancel</button><button className="people-primary-button" type="submit" disabled={saving}>{saving ? 'Adding tutor…' : 'Add tutor'}</button></div>
         </form>
       )}
 
-      <section className="panel directory-panel elegant-directory-panel">
-        <div className="directory-toolbar">
-          <div><strong>{tutors.length}</strong><span>Total tutors</span></div>
-          <div><strong>{tutors.filter((tutor) => tutor.is_active).length}</strong><span>Active</span></div>
-          <label className="directory-search"><span>Search</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name, ID, team or school" /></label>
+      <section className="people-directory-card">
+        <div className="people-directory-header">
+          <div><span className="people-kicker">Tutor records</span><h2>All tutors</h2><p>{filteredTutors.length} of {tutors.length} tutors shown</p></div>
+          <div className="people-filters"><label className="people-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, ID, team or school" /></label></div>
         </div>
 
-        {loading ? (
-          <div className="empty-state">Loading tutors…</div>
-        ) : filteredTutors.length === 0 ? (
-          <div className="empty-state"><strong>No tutors found</strong><p>Add the first tutor or change the search term.</p></div>
-        ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead><tr><th>Tutor</th><th>ID</th><th>Team</th><th>School / Branch</th><th>Status</th><th /></tr></thead>
-              <tbody>
-                {filteredTutors.map((tutor) => (
-                  <tr key={tutor.id}>
-                    <td><strong>{tutor.full_name}</strong><small>{tutor.email || 'No email added'}</small></td>
-                    <td>{tutor.employee_code}</td>
-                    <td>{tutor.team?.name || '—'}</td>
-                    <td>{tutor.branch?.name || '—'}</td>
-                    <td><span className={`account-status ${tutor.is_active ? 'is-active' : 'is-inactive'}`}>{tutor.is_active ? 'Active' : 'Inactive'}</span></td>
-                    <td><button className="table-action" type="button" onClick={() => void toggleTutor(tutor)}>{tutor.is_active ? 'Deactivate' : 'Activate'}</button></td>
-                  </tr>
-                ))}
-              </tbody>
+        {loading ? <div className="people-empty-state">Loading tutors…</div> : filteredTutors.length === 0 ? <div className="people-empty-state"><strong>No tutors found</strong><span>Add the first tutor or change the search.</span></div> : (
+          <div className="people-table-wrap">
+            <table className="people-table tutor-table">
+              <thead><tr><th>Tutor</th><th>ID</th><th>Team</th><th>School / Branch</th><th>Status</th><th>Access</th></tr></thead>
+              <tbody>{filteredTutors.map((tutor) => (
+                <tr key={tutor.id}>
+                  <td><div className="people-person-cell"><span className="people-avatar people-role-tutor">{tutorInitials(tutor.full_name)}</span><div><strong>{tutor.full_name}</strong><small>{tutor.email || 'No email added'}</small></div></div></td>
+                  <td><span className="tutor-code">{tutor.employee_code}</span></td>
+                  <td>{tutor.team?.name || '—'}</td>
+                  <td>{tutor.branch?.name || '—'}</td>
+                  <td><span className={`people-status ${tutor.is_active ? 'people-status-active' : 'people-status-inactive'}`}><i />{tutor.is_active ? 'Active' : 'Inactive'}</span></td>
+                  <td><button className="people-table-action" type="button" onClick={() => void toggleTutor(tutor)}>{tutor.is_active ? 'Deactivate' : 'Activate'}</button></td>
+                </tr>
+              ))}</tbody>
             </table>
           </div>
         )}
