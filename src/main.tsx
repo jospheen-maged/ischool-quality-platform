@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import './design-overrides.css';
+import './workspace-redesign.css';
 
 type ErrorBoundaryState = { error: Error | null };
 

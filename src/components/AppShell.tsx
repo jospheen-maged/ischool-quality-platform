@@ -25,12 +25,15 @@ const icons = {
   reviews: <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5" /></svg>,
   objections: <svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v5m0 3h.01" /></svg>,
   analytics: <svg viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7" /></svg>,
+  tutors: <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+  access: <svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7zM9 12l2 2 4-5" /></svg>,
 };
 
 export function AppShell({ children }: PropsWithChildren) {
   const { profile, signOut } = useAuth();
   const canEvaluate = profile?.role === 'qc' || profile?.role === 'qtl' || profile?.role === 'admin' || profile?.role === 'super_admin';
   const canManage = profile?.role === 'qtl' || profile?.role === 'admin' || profile?.role === 'super_admin';
+  const isSuperAdmin = profile?.role === 'super_admin';
   const initials = (profile?.full_name || 'User')
     .split(' ')
     .filter(Boolean)
@@ -47,7 +50,7 @@ export function AppShell({ children }: PropsWithChildren) {
           </div>
           <div className="brand-product">
             <strong>B2B Offline</strong>
-            <span>Quality Evaluation</span>
+            <span>Quality Workspace</span>
           </div>
         </div>
 
@@ -58,13 +61,15 @@ export function AppShell({ children }: PropsWithChildren) {
           <NavItem to="/reviews" label="Reviews" icon={icons.reviews} />
           <NavItem to="/objections" label="Objections" icon={icons.objections} />
           {canManage && <NavItem to="/analytics" label="Analytics" icon={icons.analytics} />}
+          {canManage && <NavItem to="/tutors" label="Tutors" icon={icons.tutors} />}
+          {isSuperAdmin && <NavItem to="/access" label="Accounts & Access" icon={icons.access} />}
         </nav>
 
         <div className="sidebar-insight">
           <span className="insight-dot" />
           <div>
-            <strong>Evidence first</strong>
-            <p>Context, teaching quality, compliance, then action.</p>
+            <strong>Role-based workspace</strong>
+            <p>Management sees the full operation. QC focuses on reviews and objections.</p>
           </div>
         </div>
 
