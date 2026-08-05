@@ -1,0 +1,278 @@
+/* Refined B2B Offline experience */
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 2.75rem);
+  background: #eef3f8;
+}
+
+.login-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.login-glow-one {
+  width: 34rem;
+  height: 34rem;
+  top: -20rem;
+  right: -10rem;
+  background: rgba(5, 111, 236, 0.13);
+}
+
+.login-glow-two {
+  width: 26rem;
+  height: 26rem;
+  bottom: -17rem;
+  left: -8rem;
+  background: rgba(255, 183, 0, 0.11);
+}
+
+.login-frame {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, 100%);
+  min-height: min(720px, calc(100vh - 3rem));
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
+  overflow: hidden;
+  border: 1px solid rgba(174, 191, 210, 0.68);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow: 0 36px 90px rgba(20, 45, 74, 0.15);
+}
+
+.login-brand-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  color: #fff;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(53, 132, 255, 0.34), transparent 21rem),
+    radial-gradient(circle at 0% 100%, rgba(255, 190, 45, 0.18), transparent 18rem),
+    linear-gradient(145deg, #071f39 0%, #0b3156 58%, #0c4779 100%);
+}
+
+.login-brand-panel::after {
+  content: "";
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  right: -12rem;
+  bottom: -11rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow: 0 0 0 58px rgba(255, 255, 255, 0.025), 0 0 0 116px rgba(255, 255, 255, 0.018);
+}
+
+.login-brand-panel > * { position: relative; z-index: 1; }
+
+.login-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+}
+
+.login-logo-wrap {
+  width: 118px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.login-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.login-brand-row strong, .login-brand-row span { display: block; }
+.login-brand-row strong { margin-top: 0.14rem; color: #fff; font-size: 0.92rem; }
+.login-product-label { color: rgba(255, 255, 255, 0.6); font-size: 0.67rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+
+.login-brand-copy { max-width: 470px; margin: 3.2rem 0 2.5rem; }
+.login-kicker { display: inline-flex; margin-bottom: 1rem; color: #ffd45f; font-size: 0.7rem; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; }
+.login-brand-copy h1 { margin-bottom: 1.2rem; color: #fff; font-size: clamp(2.3rem, 4vw, 4.15rem); line-height: 0.99; letter-spacing: -0.055em; }
+.login-brand-copy p { max-width: 430px; margin: 0; color: rgba(255, 255, 255, 0.68); font-size: 1rem; line-height: 1.7; }
+
+.login-feature-list { display: grid; gap: 0.75rem; }
+.login-feature {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+}
+.login-feature > span { color: #ffd45f; font-size: 0.67rem; font-weight: 850; }
+.login-feature strong, .login-feature small { display: block; }
+.login-feature strong { color: #fff; font-size: 0.82rem; }
+.login-feature small { margin-top: 0.22rem; color: rgba(255, 255, 255, 0.52); font-size: 0.7rem; line-height: 1.45; }
+
+.login-form-panel {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 5vw, 5rem);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), #f7f9fc);
+}
+
+.login-card { width: min(430px, 100%); }
+.login-card-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.3rem;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(145deg, #056fec, #2c8dff);
+  box-shadow: 0 15px 28px rgba(5, 111, 236, 0.23);
+}
+.login-card-icon svg { width: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.login-card-heading > span { color: #056fec; font-size: 0.69rem; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; }
+.login-card-heading h2 { margin: 0.55rem 0 0.35rem; font-size: 2rem; letter-spacing: -0.04em; }
+.login-card-heading p { margin-bottom: 1.75rem; font-size: 0.9rem; }
+
+.login-field { display: grid; gap: 0.5rem; margin-top: 1rem; color: #17324e; font-size: 0.78rem; font-weight: 780; }
+.login-field > div { position: relative; }
+.login-field svg { position: absolute; left: 1rem; top: 50%; width: 19px; transform: translateY(-50%); fill: none; stroke: #8ca0b5; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.login-field input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0.8rem 1rem 0.8rem 3rem;
+  border: 1px solid #cfdae6;
+  border-radius: 14px;
+  color: #102a43;
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(19, 47, 76, 0.025);
+}
+.login-field input:focus { border-color: #5a9bf5; box-shadow: 0 0 0 4px rgba(5, 111, 236, 0.09); outline: none; }
+
+.login-button {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.4rem;
+  padding: 0.8rem 1.15rem 0.8rem 1.3rem;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #056fec, #2f87f4);
+  box-shadow: 0 16px 28px rgba(5, 111, 236, 0.2);
+  font-weight: 800;
+  cursor: pointer;
+}
+.login-button:hover { transform: translateY(-1px); box-shadow: 0 18px 34px rgba(5, 111, 236, 0.25); }
+.login-button:disabled { opacity: 0.65; cursor: wait; transform: none; }
+.login-button svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.login-trust-note { display: flex; align-items: center; justify-content: center; gap: 0.55rem; margin-top: 1.15rem; color: #74879a; font-size: 0.7rem; }
+.login-trust-note span { width: 8px; height: 8px; border-radius: 50%; background: #16b982; box-shadow: 0 0 0 4px rgba(22, 185, 130, 0.12); }
+
+/* Cleaner application chrome */
+.sidebar {
+  background: linear-gradient(180deg, #081f36 0%, #0b2d4d 62%, #0b3d68 100%);
+  box-shadow: 12px 0 32px rgba(8, 31, 54, 0.1);
+}
+.main-content { background: #f5f7fb; }
+.nav-list a.active { color: #0b3156; background: #fff; }
+
+/* Admin workspaces */
+.admin-page { padding-bottom: 2rem; }
+.admin-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
+.admin-page-header h1 { margin-bottom: 0.55rem; }
+.admin-page-header p:last-child { max-width: 720px; margin-bottom: 0; }
+
+.access-role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.access-role-grid article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.access-role-grid strong { display: block; color: var(--navy-deep); font-size: 0.92rem; }
+.access-role-grid p { margin: 0.35rem 0 0; font-size: 0.75rem; line-height: 1.55; }
+.role-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; font-size: 0.72rem; font-weight: 900; }
+.role-management { color: #154da5; background: #e8f1ff; }
+.role-qc { color: #8a4c00; background: #fff2d9; }
+
+.admin-form-card { display: grid; gap: 1.25rem; padding: 1.35rem; }
+.admin-form-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.admin-form-heading h2 { margin-bottom: 0; }
+.admin-form-heading > span { max-width: 350px; color: var(--muted); font-size: 0.72rem; text-align: right; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.85rem; }
+.admin-form-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-form-grid label { display: grid; gap: 0.45rem; color: var(--navy); font-size: 0.72rem; font-weight: 760; }
+.admin-form-grid input, .admin-form-grid select, .directory-search input, .table-select {
+  width: 100%;
+  min-height: 43px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  color: var(--navy-deep);
+  background: #fff;
+}
+.admin-form-grid input:focus, .admin-form-grid select:focus, .directory-search input:focus, .table-select:focus { border-color: #6aa2f3; outline: none; box-shadow: 0 0 0 3px rgba(35, 104, 242, 0.08); }
+.admin-form-actions { display: flex; justify-content: flex-end; gap: 0.7rem; padding-top: 0.25rem; }
+
+.directory-panel { overflow: hidden; padding: 0; }
+.directory-toolbar { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+.directory-toolbar > div { min-width: 90px; }
+.directory-toolbar strong, .directory-toolbar span { display: block; }
+.directory-toolbar strong { color: var(--navy-deep); font-size: 1.25rem; }
+.directory-toolbar span { margin-top: 0.15rem; color: var(--muted); font-size: 0.66rem; }
+.directory-search { width: min(410px, 100%); display: grid; gap: 0.35rem; margin-left: auto; color: var(--muted); font-size: 0.68rem; font-weight: 700; }
+.directory-search input { min-height: 40px; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { padding: 0.8rem 1rem; color: #7b8ea1; background: #f8fafc; font-size: 0.65rem; font-weight: 850; letter-spacing: 0.07em; text-align: left; text-transform: uppercase; }
+.admin-table td { padding: 0.9rem 1rem; border-top: 1px solid #edf1f5; color: #53697d; font-size: 0.76rem; vertical-align: middle; }
+.admin-table td strong, .admin-table td small { display: block; }
+.admin-table td strong { color: var(--navy-deep); font-size: 0.8rem; }
+.admin-table td small { margin-top: 0.2rem; color: #8b9cad; font-size: 0.67rem; }
+.admin-table tr:hover td { background: #fbfdff; }
+.table-select { min-width: 160px; min-height: 36px; padding: 0.45rem 0.55rem; font-size: 0.72rem; }
+.table-action { padding: 0.38rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; color: #245b9f; background: #fff; font-size: 0.68rem; font-weight: 780; cursor: pointer; }
+.table-action:hover { border-color: #8db6ed; background: #f3f8ff; }
+.account-status, .role-pill { display: inline-flex; align-items: center; min-height: 27px; padding: 0.25rem 0.55rem; border-radius: 999px; font-size: 0.65rem; font-weight: 800; }
+.account-status.is-active { color: #087553; background: #e9f8f1; }
+.account-status.is-inactive { color: #8a5560; background: #f8ecef; }
+.role-pill { color: #245b9f; background: #edf4ff; }
+.empty-state { padding: 3rem 1rem; text-align: center; color: var(--muted); }
+.empty-state strong { display: block; color: var(--navy-deep); }
+.empty-state p { margin: 0.4rem 0 0; }
+.alert-success { color: #087553; border: 1px solid #bce8d7; background: #ecfaf4; }
+
+@media (max-width: 1120px) {
+  .admin-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-form-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .login-page { padding: 0; place-items: stretch; }
+  .login-frame { min-height: 100vh; grid-template-columns: 1fr; border: 0; border-radius: 0; }
+  .login-brand-panel { min-height: auto; padding: 1.5rem; }
+  .login-brand-copy { margin: 2.5rem 0 1.5rem; }
+  .login-brand-copy h1 { font-size: clamp(2.2rem, 10vw, 3.5rem); }
+  .login-feature-list { display: none; }
+  .login-form-panel { padding: 2.5rem 1.5rem 3rem; }
+  .access-role-grid { grid-template-columns: 1fr; }
+  .admin-page-header { flex-direction: column; }
+  .admin-form-grid, .admin-form-grid-three { grid-template-columns: 1fr; }
+  .admin-form-heading { flex-direction: column; }
+  .admin-form-heading > span { text-align: left; }
+  .directory-toolbar { align-items: flex-start; flex-wrap: wrap; }
+  .directory-search { width: 100%; margin-left: 0; }
+}
