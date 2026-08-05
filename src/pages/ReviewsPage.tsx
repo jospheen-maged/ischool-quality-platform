@@ -88,7 +88,9 @@ export function ReviewsPage() {
   const [flags, setFlags] = useState<ReviewFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const notice = (location.state as { notice?: string } | null)?.notice;
 
   useEffect(() => {
@@ -154,6 +156,37 @@ export function ReviewsPage() {
 
   const canCreate = profile?.role !== 'tutor';
   const isTutor = profile?.role === 'tutor';
+  const canPublish = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'qtl';
+
+  async function publishReview(reviewId: string) {
+    setPublishingId(reviewId);
+    setError('');
+    setSuccess('');
+
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) throw userError ?? new Error('No authenticated user.');
+
+      const { error: updateError } = await supabase
+        .from('reviews')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString(),
+          published_by: userData.user.id,
+        })
+        .eq('id', reviewId);
+
+      if (updateError) throw updateError;
+
+      setReviews((items) => items.map((item) => item.id === reviewId ? { ...item, status: 'published' } : item));
+      setSelectedReview((item) => item?.id === reviewId ? { ...item, status: 'published' } : item);
+      setSuccess('Review published successfully. It is now visible to the tutor.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to publish the review.');
+    } finally {
+      setPublishingId(null);
+    }
+  }
 
   return (
     <div className="page-stack review-portal-page">
@@ -167,6 +200,7 @@ export function ReviewsPage() {
       </header>
 
       {notice && <div className="alert alert-success">{notice}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
       {selectedReviewId && (
@@ -182,6 +216,16 @@ export function ReviewsPage() {
                   <p>{formatDate(selectedReview.session_date)} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
                 </div>
                 <div className="review-detail-actions">
+                  {canPublish && ['submitted', 'awaiting_approval'].includes(selectedReview.status) && (
+                    <button
+                      className="button button-primary"
+                      type="button"
+                      disabled={publishingId === selectedReview.id}
+                      onClick={() => void publishReview(selectedReview.id)}
+                    >
+                      {publishingId === selectedReview.id ? 'Publishing…' : 'Publish to tutor'}
+                    </button>
+                  )}
                   {isTutor && selectedReview.status === 'published' && <Link className="button button-primary" to={`/objections?review=${selectedReview.id}`}>Raise objection</Link>}
                   <Link className="people-secondary-button" to="/reviews">Close details</Link>
                 </div>
