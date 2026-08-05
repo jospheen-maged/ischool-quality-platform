@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import ischoolLogo from '../assets/ischool-logo.svg';
+import ischoolLogo from '../assets/ischool-logo-official.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { AppLink } from '../lib/router';
 
