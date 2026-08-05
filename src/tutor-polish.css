@@ -1,0 +1,58 @@
+.tutor-form-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.tutor-form-grid label {
+  display: grid;
+  gap: 0.42rem;
+  color: #34506b;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.tutor-form-grid input {
+  width: 100%;
+  min-height: 43px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #d4dfe9;
+  border-radius: 10px;
+  color: #18334f;
+  background: #fff;
+  font-size: 0.76rem;
+  outline: none;
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+
+.tutor-form-grid input:focus {
+  border-color: #7ab2ef;
+  box-shadow: 0 0 0 4px rgba(8, 120, 249, 0.07);
+}
+
+.tutor-code {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0.3rem 0.55rem;
+  border-radius: 8px;
+  color: #49637d;
+  background: #f2f6fa;
+  font-size: 0.66rem;
+  font-weight: 780;
+}
+
+.tutor-table td:nth-child(3),
+.tutor-table td:nth-child(4) {
+  color: #526a80;
+}
+
+@media (max-width: 1180px) {
+  .tutor-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tutor-form-grid label:last-child { grid-column: 1 / -1; }
+}
+
+@media (max-width: 700px) {
+  .tutor-form-grid { grid-template-columns: 1fr; }
+  .tutor-form-grid label:last-child { grid-column: auto; }
+}
