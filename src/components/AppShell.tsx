@@ -27,7 +27,17 @@ const icons = {
   analytics: <svg viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7" /></svg>,
   tutors: <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
   access: <svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7zM9 12l2 2 4-5" /></svg>,
+  logout: <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3m11-8h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" /></svg>,
 };
+
+function formatRole(role: string | undefined) {
+  if (!role) return 'User';
+  if (role === 'super_admin') return 'Super Admin';
+  if (role === 'admin') return 'Management';
+  if (role === 'qtl') return 'Quality Team Lead';
+  if (role === 'qc') return 'Quality Control';
+  return 'Tutor';
+}
 
 export function AppShell({ children }: PropsWithChildren) {
   const { profile, signOut } = useAuth();
@@ -42,59 +52,55 @@ export function AppShell({ children }: PropsWithChildren) {
     .join('');
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand-block">
-          <div className="brand-logo-wrap">
-            <img src={ischoolLogo} alt="iSchool" className="brand-logo" />
-          </div>
-          <div className="brand-product">
+    <div className="app-shell elegant-shell">
+      <aside className="sidebar elegant-sidebar">
+        <div className="elegant-brand-block">
+          <img src={ischoolLogo} alt="iSchool" className="elegant-brand-logo" />
+          <div>
             <strong>B2B Offline</strong>
             <span>Quality Workspace</span>
           </div>
         </div>
 
-        <div className="sidebar-label">Workspace</div>
-        <nav className="nav-list" aria-label="Primary navigation">
+        <div className="sidebar-label elegant-sidebar-label">Workspace</div>
+        <nav className="nav-list elegant-nav" aria-label="Primary navigation">
           <NavItem to="/" exact label="Dashboard" icon={icons.dashboard} />
           {canEvaluate && <NavItem to="/evaluations/new" label="New Evaluation" icon={icons.evaluation} />}
           <NavItem to="/reviews" label="Reviews" icon={icons.reviews} />
           <NavItem to="/objections" label="Objections" icon={icons.objections} />
           {canManage && <NavItem to="/analytics" label="Analytics" icon={icons.analytics} />}
-          {canManage && <NavItem to="/tutors" label="Tutors" icon={icons.tutors} />}
-          {isSuperAdmin && <NavItem to="/access" label="Accounts & Access" icon={icons.access} />}
         </nav>
 
-        <div className="sidebar-insight">
-          <span className="insight-dot" />
-          <div>
-            <strong>Role-based workspace</strong>
-            <p>Management sees the full operation. QC focuses on reviews and objections.</p>
-          </div>
-        </div>
+        {canManage && <div className="sidebar-label elegant-sidebar-label elegant-sidebar-label-secondary">Directory</div>}
+        {canManage && (
+          <nav className="nav-list elegant-nav" aria-label="Directory navigation">
+            <NavItem to="/tutors" label="Tutors" icon={icons.tutors} />
+            {isSuperAdmin && <NavItem to="/access" label="People & Access" icon={icons.access} />}
+          </nav>
+        )}
 
-        <div className="sidebar-footer">
-          <div className="user-chip">
-            <div className="user-avatar">{initials || 'U'}</div>
+        <div className="elegant-sidebar-footer">
+          <div className="elegant-user-card">
+            <div className="user-avatar elegant-user-avatar">{initials || 'U'}</div>
             <div>
-              <span>{profile?.full_name || 'User'}</span>
-              <small>{profile?.role.replace('_', ' ')}</small>
+              <strong>{profile?.full_name || 'User'}</strong>
+              <span>{formatRole(profile?.role)}</span>
             </div>
           </div>
-          <button className="button button-ghost" onClick={() => void signOut()}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m11-8h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" /></svg>
+          <button className="elegant-signout" onClick={() => void signOut()}>
+            <span className="nav-icon" aria-hidden="true">{icons.logout}</span>
             Sign out
           </button>
         </div>
       </aside>
 
-      <main className="main-content">
-        <div className="topbar">
+      <main className="main-content elegant-main-content">
+        <div className="topbar elegant-topbar">
           <div>
             <span className="topbar-kicker">iSchool Quality Operations</span>
             <strong>B2B Offline Evaluation Workspace</strong>
           </div>
-          <div className="topbar-status"><span /> Secure workspace</div>
+          <span className="elegant-role-chip">{formatRole(profile?.role)}</span>
         </div>
         {children}
       </main>
