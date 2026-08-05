@@ -4,6 +4,7 @@ import { AppShell } from './components/AppShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RouterProvider, useRouter } from './lib/router';
 
+const AccessControlPage = lazy(() => import('./pages/AccessControlPage').then((module) => ({ default: module.AccessControlPage })));
 const AccessPage = lazy(() => import('./pages/AccessPage').then((module) => ({ default: module.AccessPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
@@ -15,7 +16,7 @@ const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/model-settings']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
 
 function PageLoader() {
   return (
@@ -36,41 +37,64 @@ function ApplicationRoutes() {
   if (pathname === '/login') return <LoginPage />;
   if (pathname === '/set-password') return <SetPasswordPage />;
 
-  let page: ReactNode = <DashboardPage />;
-  if (pathname === '/reviews') page = <ReviewsPage />;
-  if (pathname === '/objections') page = <ObjectionsPage />;
+  let page: ReactNode = (
+    <ProtectedRoute requiredPermission="view_dashboard">
+      <DashboardPage />
+    </ProtectedRoute>
+  );
+  if (pathname === '/reviews') {
+    page = (
+      <ProtectedRoute requiredPermission="view_reviews">
+        <ReviewsPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/objections') {
+    page = (
+      <ProtectedRoute requiredPermission="view_objections">
+        <ObjectionsPage />
+      </ProtectedRoute>
+    );
+  }
   if (pathname === '/evaluations/new') {
     page = (
-      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']}>
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="create_evaluation">
         <NewEvaluationPage />
       </ProtectedRoute>
     );
   }
   if (pathname === '/analytics') {
     page = (
-      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+      <ProtectedRoute requiredPermission="view_analytics">
         <AnalyticsPage />
       </ProtectedRoute>
     );
   }
   if (pathname === '/tutors') {
     page = (
-      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+      <ProtectedRoute requiredPermission="manage_tutors">
         <TutorsPage />
       </ProtectedRoute>
     );
   }
   if (pathname === '/model-settings') {
     page = (
-      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+      <ProtectedRoute requiredPermission="manage_model_settings">
         <ModelSettingsPage />
       </ProtectedRoute>
     );
   }
   if (pathname === '/access') {
     page = (
-      <ProtectedRoute allowedRoles={['super_admin']}>
+      <ProtectedRoute requiredPermission="manage_people">
         <AccessPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/access-control') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin']} requiredPermission="manage_access">
+        <AccessControlPage />
       </ProtectedRoute>
     );
   }
