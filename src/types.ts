@@ -1,3 +1,5 @@
+import type { PermissionKey } from './lib/permissions';
+
 export type UserRole = 'super_admin' | 'admin' | 'qtl' | 'qc' | 'tutor';
 
 export type Profile = {
@@ -7,6 +9,7 @@ export type Profile = {
   role: UserRole;
   tutor_id: string | null;
   is_active: boolean;
+  permissions: Partial<Record<PermissionKey, boolean>>;
 };
 
 export type ComplianceResult =
