@@ -8,10 +8,10 @@ const AccessControlPage = lazy(() => import('./pages/AccessControlPage').then((m
 const AccessPage = lazy(() => import('./pages/AccessPage').then((module) => ({ default: module.AccessPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const EvaluationReconsiderationPage = lazy(() => import('./pages/EvaluationReconsiderationPage').then((module) => ({ default: module.EvaluationReconsiderationPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const ModelSettingsPage = lazy(() => import('./pages/ModelSettingsPage').then((module) => ({ default: module.ModelSettingsPage })));
 const NewEvaluationPage = lazy(() => import('./pages/NewEvaluationPage').then((module) => ({ default: module.NewEvaluationPage })));
-const ObjectionsPage = lazy(() => import('./pages/ObjectionsPage').then((module) => ({ default: module.ObjectionsPage })));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
@@ -52,7 +52,7 @@ function ApplicationRoutes() {
   if (pathname === '/objections') {
     page = (
       <ProtectedRoute requiredPermission="view_objections">
-        <ObjectionsPage />
+        <EvaluationReconsiderationPage />
       </ProtectedRoute>
     );
   }
