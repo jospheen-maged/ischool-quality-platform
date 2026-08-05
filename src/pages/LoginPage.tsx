@@ -3,6 +3,12 @@ import ischoolLogo from '../assets/ischool-logo-official.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { useRouter } from '../lib/router';
 
+const features = [
+  ['Evidence-led reviews', 'Capture only what was directly observed.'],
+  ['Clear role access', 'Management and QC see the tools relevant to them.'],
+  ['Actionable outcomes', 'Turn every review into one focused next step.'],
+];
+
 export function LoginPage() {
   const { user, signIn } = useAuth();
   const { state, navigate } = useRouter();
@@ -31,69 +37,74 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      <section className="auth-hero">
-        <div className="auth-brand">
-          <div className="auth-logo-panel"><img src={ischoolLogo} alt="iSchool" /></div>
-          <span>B2B Offline Quality Evaluation</span>
-        </div>
+    <main className="login-page">
+      <div className="login-glow login-glow-one" />
+      <div className="login-glow login-glow-two" />
 
-        <div className="auth-hero-copy">
-          <p className="eyebrow light">Proposed operating model</p>
-          <h1>Measure student learning. Protect fairness. Drive clear action.</h1>
-          <p>One structured workspace that separates session context, teaching quality, compliance severity, and tutor development.</p>
-        </div>
+      <section className="login-frame">
+        <aside className="login-brand-panel">
+          <div className="login-brand-row">
+            <div className="login-logo-wrap"><img src={ischoolLogo} alt="iSchool" /></div>
+            <div>
+              <span className="login-product-label">B2B Offline</span>
+              <strong>Quality Workspace</strong>
+            </div>
+          </div>
 
-        <div className="auth-pillars" aria-label="Evaluation model pillars">
-          <div><span>01</span><strong>Context</strong><small>Fair interpretation</small></div>
-          <div><span>02</span><strong>Teaching</strong><small>Weighted quality</small></div>
-          <div><span>03</span><strong>Compliance</strong><small>Separate status</small></div>
-          <div><span>04</span><strong>Action</strong><small>Clear follow-up</small></div>
-        </div>
-      </section>
+          <div className="login-brand-copy">
+            <span className="login-kicker">Quality evaluation, made practical</span>
+            <h1>See the evidence.<br />Make the next action clear.</h1>
+            <p>A focused workspace for tutor reviews, objections, analytics, and follow-up.</p>
+          </div>
 
-      <section className="auth-panel">
-        <form className="auth-card" onSubmit={handleSubmit}>
-          <div className="auth-card-heading">
-            <div className="login-icon" aria-hidden="true">
+          <div className="login-feature-list">
+            {features.map(([title, description], index) => (
+              <div className="login-feature" key={title}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <div><strong>{title}</strong><small>{description}</small></div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <section className="login-form-panel">
+          <form className="login-card" onSubmit={handleSubmit}>
+            <div className="login-card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12v10H6z" /></svg>
             </div>
-            <div>
-              <p className="eyebrow">Secure access</p>
-              <h2>Welcome to B2B Offline</h2>
+            <div className="login-card-heading">
+              <span>Secure workspace</span>
+              <h2>Welcome back</h2>
               <p>Sign in with your approved iSchool account.</p>
             </div>
-          </div>
 
-          <label>
-            Email address
-            <div className="input-with-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3zM3 7l9 6 9-6" /></svg>
-              <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@ischooltech.com" required />
-            </div>
-          </label>
+            <label className="login-field">
+              <span>Email address</span>
+              <div>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3zM3 7l9 6 9-6" /></svg>
+                <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@ischooltech.com" required />
+              </div>
+            </label>
 
-          <label>
-            Password
-            <div className="input-with-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12v10H6z" /></svg>
-              <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" required />
-            </div>
-          </label>
+            <label className="login-field">
+              <span>Password</span>
+              <div>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12v10H6z" /></svg>
+                <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" required />
+              </div>
+            </label>
 
-          {error && <div className="alert alert-error" role="alert">{error}</div>}
+            {error && <div className="alert alert-error" role="alert">{error}</div>}
 
-          <button className="button button-primary auth-submit" type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in to workspace'}
-            {!submitting && <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>}
-          </button>
+            <button className="login-button" type="submit" disabled={submitting}>
+              <span>{submitting ? 'Signing in…' : 'Sign in'}</span>
+              {!submitting && <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>}
+            </button>
 
-          <div className="auth-security-note">
-            <span className="status-dot" />
-            Role-based access and audit history are enabled.
-          </div>
-        </form>
+            <div className="login-trust-note"><span /> Role-based access and audit history are enabled.</div>
+          </form>
+        </section>
       </section>
-    </div>
+    </main>
   );
 }
