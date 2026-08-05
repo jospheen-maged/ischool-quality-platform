@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import ischoolLogo from '../assets/ischool-logo.svg';
+import ischoolLogo from '../assets/ischool-logo-official.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { useRouter } from '../lib/router';
 
