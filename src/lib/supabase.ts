@@ -1,18 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+const fallbackUrl = 'https://mxfeyumgdlmiplognpry.supabase.co';
+const fallbackPublishableKey = 'sb_publishable_8B_2gV3-U1QTA0J9wfsFrg_IhAD-9Av';
 
-if (!supabaseUrl || !supabasePublishableKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Copy .env.example to .env and add the project URL and publishable key.',
-  );
+function clean(value: unknown) {
+  return typeof value === 'string' ? value.trim().replace(/^['"]|['"]$/g, '') : '';
 }
+
+const configuredUrl = clean(import.meta.env.VITE_SUPABASE_URL);
+const configuredKey = clean(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+
+export const supabaseUrl = configuredUrl || fallbackUrl;
+export const supabasePublishableKey = configuredKey || fallbackPublishableKey;
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    storageKey: 'b2b-offline-auth',
   },
 });
