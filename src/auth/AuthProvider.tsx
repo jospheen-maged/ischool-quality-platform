@@ -23,14 +23,14 @@ function fallbackProfile(user: User): Profile {
     ? 'super_admin'
     : metadataRole && roles.includes(metadataRole)
       ? metadataRole
-      : 'qc';
+      : 'tutor';
 
   return {
     id: user.id,
     full_name: String(user.user_metadata?.full_name || user.email?.split('@')[0] || 'iSchool User'),
     email: user.email ?? null,
     role,
-    tutor_id: null,
+    tutor_id: typeof user.user_metadata?.tutor_id === 'string' ? user.user_metadata.tutor_id : null,
     is_active: true,
   };
 }
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .maybeSingle();
 
     if (error) {
-      console.warn('Profile lookup failed; using safe authenticated fallback.', error);
+      console.warn('Profile lookup failed; using least-privilege authenticated fallback.', error);
       setAuthError('Your account is signed in, but the profile record could not be loaded.');
       setProfile(fallbackProfile(user));
       return;

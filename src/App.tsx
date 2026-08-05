@@ -11,9 +11,10 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ def
 const NewEvaluationPage = lazy(() => import('./pages/NewEvaluationPage').then((module) => ({ default: module.NewEvaluationPage })));
 const ObjectionsPage = lazy(() => import('./pages/ObjectionsPage').then((module) => ({ default: module.ObjectionsPage })));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
+const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access']);
 
 function PageLoader() {
   return (
@@ -32,6 +33,7 @@ function ApplicationRoutes() {
   }, [navigate, pathname]);
 
   if (pathname === '/login') return <LoginPage />;
+  if (pathname === '/set-password') return <SetPasswordPage />;
 
   let page: ReactNode = <DashboardPage />;
   if (pathname === '/reviews') page = <ReviewsPage />;
