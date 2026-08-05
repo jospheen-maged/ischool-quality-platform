@@ -58,7 +58,7 @@ export default async function handler(request, response) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const createdReviewIds = [];
+  const branch = `RLS Diagnostic ${Date.now()}`;
   try {
     const [{ data: profileRows, error: profileRowsError }, { data: authUsersData, error: authUsersError }] = await Promise.all([
       admin.from('profiles').select('id, email, role, is_active').eq('email', ADMIN_EMAIL),
@@ -69,29 +69,17 @@ export default async function handler(request, response) {
 
     const authUser = (authUsersData?.users || []).find((user) => user.email?.toLowerCase() === ADMIN_EMAIL);
     const evaluator = profileRows?.find((profile) => profile.id === authUser?.id) || null;
-    if (!authUser || !evaluator) {
-      return response.status(500).json({
-        stage: 'account_linkage',
-        authUserId: authUser?.id || null,
-        profileIds: (profileRows || []).map((profile) => profile.id),
-        error: 'Auth user and Super Admin profile are not linked.',
-      });
-    }
+    if (!authUser || !evaluator) return response.status(500).json({ stage: 'account_linkage', error: 'Auth user and profile are not linked.' });
 
     const { data: tutor, error: tutorError } = await admin
       .from('tutors')
-      .select('id, employee_code, full_name')
+      .select('id')
       .eq('employee_code', 'TEST-001')
       .maybeSingle();
     if (tutorError || !tutor) return response.status(500).json({ stage: 'tutor_lookup', error: cleanError(tutorError) || 'Test tutor not found.' });
 
-    const { data: generated, error: generateError } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: ADMIN_EMAIL,
-    });
-    if (generateError || !generated?.properties?.hashed_token) {
-      return response.status(500).json({ stage: 'generate_user_token', error: cleanError(generateError) || 'Unable to generate a user-scoped token.' });
-    }
+    const { data: generated, error: generateError } = await admin.auth.admin.generateLink({ type: 'magiclink', email: ADMIN_EMAIL });
+    if (generateError || !generated?.properties?.hashed_token) return response.status(500).json({ stage: 'generate_user_token', error: cleanError(generateError) });
 
     const authClient = createClient(supabaseUrl, publicKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
@@ -100,47 +88,47 @@ export default async function handler(request, response) {
       type: 'magiclink',
       token_hash: generated.properties.hashed_token,
     });
-    if (verifyError || !verified.session?.access_token) {
-      return response.status(500).json({ stage: 'verify_user_token', error: cleanError(verifyError) || 'Unable to verify the user-scoped token.' });
-    }
+    if (verifyError || !verified.session?.access_token) return response.status(500).json({ stage: 'verify_user_token', error: cleanError(verifyError) });
 
     const userClient = createClient(supabaseUrl, publicKey, {
       auth: { persistSession: false, autoRefreshToken: false },
       global: { headers: { Authorization: `Bearer ${verified.session.access_token}` } },
     });
 
-    const { data: roleData, error: roleError } = await userClient.rpc('current_role');
-    if (roleError) return response.status(500).json({ stage: 'current_role', error: cleanError(roleError) });
+    const [roleResult, adminLikeResult, staffResult] = await Promise.all([
+      userClient.rpc('current_role'),
+      userClient.rpc('is_admin_like'),
+      userClient.rpc('is_staff'),
+    ]);
 
-    const { data: userReview, error: userReviewError } = await userClient
+    const { error: insertWithoutReturningError } = await userClient
       .from('reviews')
-      .insert(reviewPayload(tutor.id, authUser.id, 'RLS Diagnostic Branch'))
+      .insert(reviewPayload(tutor.id, authUser.id, branch));
+
+    const { data: insertedRows } = await admin
+      .from('reviews')
       .select('id')
-      .single();
+      .eq('school_branch', branch);
 
-    if (userReview?.id) createdReviewIds.push(userReview.id);
-    if (userReviewError || !userReview) {
-      return response.status(500).json({
-        stage: 'user_rls_review_insert',
-        currentRole: roleData,
-        authUserId: authUser.id,
-        profileRole: evaluator.role,
-        profileActive: evaluator.is_active,
-        error: cleanError(userReviewError) || 'RLS insert returned no record.',
-      });
-    }
+    const insertedIds = (insertedRows || []).map((item) => item.id);
 
-    return response.status(200).json({
-      ok: true,
-      stage: 'user_rls_review_insert_complete',
-      currentRole: roleData,
-      authUserId: authUser.id,
-      profileRole: evaluator.role,
-      profileActive: evaluator.is_active,
+    return response.status(insertWithoutReturningError ? 500 : 200).json({
+      ok: !insertWithoutReturningError,
+      stage: insertedIds.length ? 'insert_succeeded_without_returning' : 'insert_failed_before_returning',
+      currentRole: roleResult.data,
+      isAdminLike: adminLikeResult.data,
+      isStaff: staffResult.data,
+      helperErrors: {
+        currentRole: cleanError(roleResult.error),
+        isAdminLike: cleanError(adminLikeResult.error),
+        isStaff: cleanError(staffResult.error),
+      },
+      insertedCount: insertedIds.length,
+      error: cleanError(insertWithoutReturningError),
     });
   } catch (error) {
     return response.status(500).json({ stage: 'unexpected', error: cleanError(error) });
   } finally {
-    if (createdReviewIds.length) await admin.from('reviews').delete().in('id', createdReviewIds);
+    await admin.from('reviews').delete().eq('school_branch', branch);
   }
 }
