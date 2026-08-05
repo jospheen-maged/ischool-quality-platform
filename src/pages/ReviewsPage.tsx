@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { hasPermission } from '../lib/permissions';
 import { supabase } from '../lib/supabase';
 
 type ReviewRow = {
   id: string;
+  evaluator_id: string;
   session_date: string | null;
   school_branch: string | null;
   course_track: string | null;
@@ -59,7 +61,8 @@ type ReviewFlag = {
   criterion: { title: string } | null;
 };
 
-const reviewSelect = 'id, session_date, school_branch, course_track, session_topic, status, learning_outcome_status, compliance_status, total_score, maximum_score, score_percentage, teaching_percentage, compliance_percentage, project_percentage, project_score, created_at, tutor:tutors(full_name, employee_code), evaluator:profiles!reviews_evaluator_id_fkey(full_name), project:projects(name)';
+const reviewSelect = 'id, evaluator_id, session_date, school_branch, course_track, session_topic, status, learning_outcome_status, compliance_status, total_score, maximum_score, score_percentage, teaching_percentage, compliance_percentage, project_percentage, project_score, created_at, tutor:tutors(full_name, employee_code), evaluator:profiles!reviews_evaluator_id_fkey(full_name), project:projects(name)';
+const publishableStatuses = ['submitted', 'awaiting_approval', 'returned', 'reopened'];
 
 function formatStatus(value: string) {
   return value.replaceAll('_', ' ');
@@ -154,9 +157,14 @@ export function ReviewsPage() {
     void loadReviewDetails();
   }, [selectedReviewId]);
 
-  const canCreate = profile?.role !== 'tutor';
+  const canCreate = hasPermission(profile, 'create_evaluation');
   const isTutor = profile?.role === 'tutor';
-  const canPublish = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'qtl';
+
+  function canPublishReview(review: ReviewRow) {
+    if (!profile || !hasPermission(profile, 'publish_reviews') || !publishableStatuses.includes(review.status)) return false;
+    if (profile.role === 'qc') return review.evaluator_id === profile.id;
+    return ['super_admin', 'admin', 'qtl'].includes(profile.role);
+  }
 
   async function publishReview(reviewId: string) {
     setPublishingId(reviewId);
@@ -164,19 +172,10 @@ export function ReviewsPage() {
     setSuccess('');
 
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) throw userError ?? new Error('No authenticated user.');
-
-      const { error: updateError } = await supabase
-        .from('reviews')
-        .update({
-          status: 'published',
-          published_at: new Date().toISOString(),
-          published_by: userData.user.id,
-        })
-        .eq('id', reviewId);
-
-      if (updateError) throw updateError;
+      const { error: publishError } = await supabase.rpc('publish_review_to_tutor', {
+        p_review_id: reviewId,
+      });
+      if (publishError) throw publishError;
 
       setReviews((items) => items.map((item) => item.id === reviewId ? { ...item, status: 'published' } : item));
       setSelectedReview((item) => item?.id === reviewId ? { ...item, status: 'published' } : item);
@@ -216,7 +215,7 @@ export function ReviewsPage() {
                   <p>{formatDate(selectedReview.session_date)} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
                 </div>
                 <div className="review-detail-actions">
-                  {canPublish && ['submitted', 'awaiting_approval'].includes(selectedReview.status) && (
+                  {canPublishReview(selectedReview) && (
                     <button
                       className="button button-primary"
                       type="button"
@@ -300,7 +299,17 @@ export function ReviewsPage() {
                     <td>{review.evaluator?.full_name ?? '—'}</td>
                     <td><strong>{review.score_percentage !== null ? `${review.score_percentage}%` : '—'}</strong><span className="table-subtext">{review.total_score ?? '—'} / {review.maximum_score ?? '—'}</span></td>
                     <td><span className={`status-badge status-${review.status}`}>{formatStatus(review.status)}</span></td>
-                    <td><div className="review-row-actions"><Link to={`/reviews?review=${review.id}`}>View review</Link>{isTutor && review.status === 'published' && <Link to={`/objections?review=${review.id}`}>Object</Link>}</div></td>
+                    <td>
+                      <div className="review-row-actions">
+                        <Link to={`/reviews?review=${review.id}`}>View review</Link>
+                        {canPublishReview(review) && (
+                          <button type="button" disabled={publishingId === review.id} onClick={() => void publishReview(review.id)}>
+                            {publishingId === review.id ? 'Publishing…' : 'Publish'}
+                          </button>
+                        )}
+                        {isTutor && review.status === 'published' && <Link to={`/objections?review=${review.id}`}>Object</Link>}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
