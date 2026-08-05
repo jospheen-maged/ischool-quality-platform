@@ -52,11 +52,35 @@ export default async function handler(request, response) {
       .maybeSingle();
     if (tutorError || !tutor) return response.status(500).json({ stage: 'tutor_lookup', error: cleanError(tutorError) || 'Test tutor not found.' });
 
+    const { data: existingReviews, error: existingError } = await admin
+      .from('reviews')
+      .select('id, status, school_branch, created_at')
+      .eq('tutor_id', tutor.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (existingError) return response.status(500).json({ stage: 'existing_review_lookup', error: cleanError(existingError) });
+
+    const existing = [];
+    for (const item of existingReviews || []) {
+      const [{ count: scoreCount }, { count: feedbackCount }] = await Promise.all([
+        admin.from('review_scores').select('*', { count: 'exact', head: true }).eq('review_id', item.id),
+        admin.from('review_feedback').select('*', { count: 'exact', head: true }).eq('review_id', item.id),
+      ]);
+      existing.push({
+        id: item.id,
+        status: item.status,
+        schoolBranch: item.school_branch,
+        createdAt: item.created_at,
+        scoreCount: scoreCount || 0,
+        feedbackCount: feedbackCount || 0,
+      });
+    }
+
     const { data: criteria, error: criteriaError } = await admin
       .from('evaluation_criteria')
       .select('id, criterion_type')
       .eq('is_active', true);
-    if (criteriaError || !criteria?.length) return response.status(500).json({ stage: 'criteria_lookup', error: cleanError(criteriaError) || 'No criteria found.' });
+    if (criteriaError || !criteria?.length) return response.status(500).json({ stage: 'criteria_lookup', existing, error: cleanError(criteriaError) || 'No criteria found.' });
 
     const { data: review, error: reviewError } = await admin
       .from('reviews')
@@ -77,7 +101,7 @@ export default async function handler(request, response) {
       })
       .select('id')
       .single();
-    if (reviewError || !review) return response.status(500).json({ stage: 'review_insert', error: cleanError(reviewError) || 'Review insert returned no record.' });
+    if (reviewError || !review) return response.status(500).json({ stage: 'review_insert', existing, error: cleanError(reviewError) || 'Review insert returned no record.' });
     reviewId = review.id;
 
     const scoreRows = criteria.map((criterion) => criterion.criterion_type === 'rating'
@@ -105,7 +129,7 @@ export default async function handler(request, response) {
         });
 
     const { error: scoresError } = await admin.from('review_scores').insert(scoreRows);
-    if (scoresError) return response.status(500).json({ stage: 'score_insert', reviewId, error: cleanError(scoresError) });
+    if (scoresError) return response.status(500).json({ stage: 'score_insert', existing, reviewId, error: cleanError(scoresError) });
 
     const { error: feedbackError } = await admin.from('review_feedback').insert({
       review_id: review.id,
@@ -113,9 +137,9 @@ export default async function handler(request, response) {
       development_priority: 'Temporary diagnostic priority.',
       required_action: 'Temporary diagnostic action.',
     });
-    if (feedbackError) return response.status(500).json({ stage: 'feedback_insert', reviewId, error: cleanError(feedbackError) });
+    if (feedbackError) return response.status(500).json({ stage: 'feedback_insert', existing, reviewId, error: cleanError(feedbackError) });
 
-    return response.status(200).json({ ok: true, stage: 'complete', criteriaCount: criteria.length });
+    return response.status(200).json({ ok: true, stage: 'complete', existing, criteriaCount: criteria.length });
   } catch (error) {
     return response.status(500).json({ stage: 'unexpected', reviewId, error: cleanError(error) });
   } finally {
