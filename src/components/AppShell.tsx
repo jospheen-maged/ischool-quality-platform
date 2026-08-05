@@ -77,7 +77,7 @@ export function AppShell({ children }: PropsWithChildren) {
           {showDashboard && <NavItem to="/" exact label="Dashboard" icon={icons.dashboard} />}
           {showEvaluation && <NavItem to="/evaluations/new" label="New Evaluation" icon={icons.evaluation} />}
           {showReviews && <NavItem to="/reviews" label="Reviews" icon={icons.reviews} />}
-          {showObjections && <NavItem to="/objections" label="Objections" icon={icons.objections} />}
+          {showObjections && <NavItem to="/objections" label="Evaluation Re-consideration" icon={icons.objections} />}
           {showAnalytics && <NavItem to="/analytics" label="Analytics" icon={icons.analytics} />}
         </nav>
 
