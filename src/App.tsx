@@ -8,13 +8,14 @@ const AccessPage = lazy(() => import('./pages/AccessPage').then((module) => ({ d
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const ModelSettingsPage = lazy(() => import('./pages/ModelSettingsPage').then((module) => ({ default: module.ModelSettingsPage })));
 const NewEvaluationPage = lazy(() => import('./pages/NewEvaluationPage').then((module) => ({ default: module.NewEvaluationPage })));
 const ObjectionsPage = lazy(() => import('./pages/ObjectionsPage').then((module) => ({ default: module.ObjectionsPage })));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/model-settings']);
 
 function PageLoader() {
   return (
@@ -56,6 +57,13 @@ function ApplicationRoutes() {
     page = (
       <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
         <TutorsPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/model-settings') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl']}>
+        <ModelSettingsPage />
       </ProtectedRoute>
     );
   }

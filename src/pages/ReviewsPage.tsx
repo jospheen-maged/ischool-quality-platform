@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 
 type ReviewRow = {
   id: string;
-  session_date: string;
+  session_date: string | null;
   school_branch: string | null;
   course_track: string | null;
   session_topic: string | null;
@@ -15,9 +15,14 @@ type ReviewRow = {
   total_score: number | null;
   maximum_score: number | null;
   score_percentage: number | null;
+  teaching_percentage: number | null;
+  compliance_percentage: number | null;
+  project_percentage: number | null;
+  project_score: number | null;
   created_at: string;
   tutor: { full_name: string; employee_code: string } | null;
   evaluator: { full_name: string } | null;
+  project: { name: string } | null;
 };
 
 type ReviewScore = {
@@ -27,6 +32,7 @@ type ReviewScore = {
   compliance_result: string | null;
   evidence: string | null;
   timestamp_seconds: number | null;
+  weight_snapshot: number | null;
   criterion: {
     code: string;
     title: string;
@@ -53,6 +59,8 @@ type ReviewFlag = {
   criterion: { title: string } | null;
 };
 
+const reviewSelect = 'id, session_date, school_branch, course_track, session_topic, status, learning_outcome_status, compliance_status, total_score, maximum_score, score_percentage, teaching_percentage, compliance_percentage, project_percentage, project_score, created_at, tutor:tutors(full_name, employee_code), evaluator:profiles!reviews_evaluator_id_fkey(full_name), project:projects(name)';
+
 function formatStatus(value: string) {
   return value.replaceAll('_', ' ');
 }
@@ -62,6 +70,10 @@ function formatTimestamp(seconds: number | null) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function formatDate(value: string | null) {
+  return value ? new Date(`${value}T00:00:00`).toLocaleDateString() : 'Date not entered';
 }
 
 export function ReviewsPage() {
@@ -84,7 +96,7 @@ export function ReviewsPage() {
       setLoading(true);
       const { data, error: queryError } = await supabase
         .from('reviews')
-        .select('id, session_date, school_branch, course_track, session_topic, status, learning_outcome_status, compliance_status, total_score, maximum_score, score_percentage, created_at, tutor:tutors(full_name, employee_code), evaluator:profiles!reviews_evaluator_id_fkey(full_name)')
+        .select(reviewSelect)
         .order('created_at', { ascending: false });
 
       if (queryError) setError(queryError.message);
@@ -108,14 +120,10 @@ export function ReviewsPage() {
       setDetailLoading(true);
       setError('');
       const [reviewResult, scoresResult, feedbackResult, flagsResult] = await Promise.all([
-        supabase
-          .from('reviews')
-          .select('id, session_date, school_branch, course_track, session_topic, status, learning_outcome_status, compliance_status, total_score, maximum_score, score_percentage, created_at, tutor:tutors(full_name, employee_code), evaluator:profiles!reviews_evaluator_id_fkey(full_name)')
-          .eq('id', selectedReviewId)
-          .maybeSingle(),
+        supabase.from('reviews').select(reviewSelect).eq('id', selectedReviewId).maybeSingle(),
         supabase
           .from('review_scores')
-          .select('id, numeric_score, is_observed, compliance_result, evidence, timestamp_seconds, criterion:evaluation_criteria(code, title, criterion_type, weight_percentage)')
+          .select('id, numeric_score, is_observed, compliance_result, evidence, timestamp_seconds, weight_snapshot, criterion:evaluation_criteria(code, title, criterion_type, weight_percentage)')
           .eq('review_id', selectedReviewId),
         supabase
           .from('review_feedback')
@@ -169,9 +177,9 @@ export function ReviewsPage() {
             <>
               <div className="review-detail-header">
                 <div>
-                  <span className="review-detail-kicker">Published evaluation</span>
-                  <h2>{selectedReview.session_topic || 'Session evaluation'}</h2>
-                  <p>{new Date(selectedReview.session_date).toLocaleDateString()} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
+                  <span className="review-detail-kicker">Evaluation</span>
+                  <h2>{selectedReview.session_topic || selectedReview.project?.name || 'Session evaluation'}</h2>
+                  <p>{formatDate(selectedReview.session_date)} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
                 </div>
                 <div className="review-detail-actions">
                   {isTutor && selectedReview.status === 'published' && <Link className="button button-primary" to={`/objections?review=${selectedReview.id}`}>Raise objection</Link>}
@@ -179,11 +187,11 @@ export function ReviewsPage() {
                 </div>
               </div>
 
-              <div className="review-score-grid">
-                <article><small>Teaching score</small><strong>{selectedReview.score_percentage !== null ? `${selectedReview.score_percentage}%` : '—'}</strong></article>
-                <article><small>Learning outcome</small><strong>{formatStatus(selectedReview.learning_outcome_status)}</strong></article>
-                <article><small>Compliance</small><strong>{formatStatus(selectedReview.compliance_status)}</strong></article>
-                <article><small>Evaluator</small><strong>{selectedReview.evaluator?.full_name || '—'}</strong></article>
+              <div className="review-score-grid composite-score-grid">
+                <article><small>Overall score</small><strong>{selectedReview.score_percentage !== null ? `${selectedReview.score_percentage}%` : '—'}</strong></article>
+                <article><small>Teaching</small><strong>{selectedReview.teaching_percentage !== null ? `${selectedReview.teaching_percentage}%` : '—'}</strong></article>
+                <article><small>Compliance score</small><strong>{selectedReview.compliance_percentage !== null ? `${selectedReview.compliance_percentage}%` : '—'}</strong><span>{formatStatus(selectedReview.compliance_status)}</span></article>
+                <article><small>Project</small><strong>{selectedReview.project_percentage !== null ? `${selectedReview.project_percentage}%` : '—'}</strong><span>{selectedReview.project?.name || 'Not selected'}</span></article>
               </div>
 
               <div className="review-detail-layout">
@@ -194,7 +202,7 @@ export function ReviewsPage() {
                       <article key={score.id}>
                         <div className="review-dimension-title">
                           <span>{score.criterion?.code || '—'}</span>
-                          <div><strong>{score.criterion?.title || 'Evaluation criterion'}</strong><small>{score.criterion?.criterion_type === 'rating' ? `${score.criterion.weight_percentage}% weight` : 'Compliance check'}</small></div>
+                          <div><strong>{score.criterion?.title || 'Evaluation criterion'}</strong><small>{score.criterion?.criterion_type === 'rating' ? `${score.weight_snapshot ?? score.criterion.weight_percentage}% contribution` : 'Compliance check'}</small></div>
                         </div>
                         <div className="review-dimension-result">
                           <strong>{score.criterion?.criterion_type === 'rating' ? (score.is_observed ? `${score.numeric_score ?? '—'} / 5` : 'Not observed') : formatStatus(score.compliance_result || 'not recorded')}</strong>
@@ -239,11 +247,11 @@ export function ReviewsPage() {
         ) : (
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Session</th>{!isTutor && <th>Tutor</th>}<th>Evaluator</th><th>Score</th><th>Status</th><th>Action</th></tr></thead>
+              <thead><tr><th>Session</th>{!isTutor && <th>Tutor</th>}<th>Evaluator</th><th>Overall score</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>
                 {reviews.map((review) => (
                   <tr key={review.id}>
-                    <td><strong>{new Date(review.session_date).toLocaleDateString()}</strong><span className="table-subtext">{review.session_topic || 'No topic entered'}</span></td>
+                    <td><strong>{formatDate(review.session_date)}</strong><span className="table-subtext">{review.session_topic || review.project?.name || 'No topic entered'}</span></td>
                     {!isTutor && <td>{review.tutor ? `${review.tutor.employee_code} — ${review.tutor.full_name}` : '—'}</td>}
                     <td>{review.evaluator?.full_name ?? '—'}</td>
                     <td><strong>{review.score_percentage !== null ? `${review.score_percentage}%` : '—'}</strong><span className="table-subtext">{review.total_score ?? '—'} / {review.maximum_score ?? '—'}</span></td>

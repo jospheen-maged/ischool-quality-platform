@@ -25,6 +25,7 @@ const icons = {
   objections: <svg viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4zM9 9h6M9 13h4" /></svg>,
   tutors: <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
   evaluation: <svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4h6M9 11h6M9 15h4" /></svg>,
+  settings: <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M7 14v6" /></svg>,
   people: <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-1h6m-3-3v6" /></svg>,
 };
 
@@ -130,6 +131,13 @@ export function DashboardPage() {
               <span className="elegant-action-arrow">›</span>
             </AppLink>
             {canManage && (
+              <AppLink to="/model-settings" className="elegant-action-card model-settings-action">
+                <span className="elegant-action-icon">{icons.settings}</span>
+                <div><strong>Configure evaluation model</strong><small>Change weights, metrics, compliance items, and projects.</small></div>
+                <span className="elegant-action-arrow">›</span>
+              </AppLink>
+            )}
+            {canManage && (
               <AppLink to="/tutors" className="elegant-action-card">
                 <span className="elegant-action-icon">{icons.tutors}</span>
                 <div><strong>Manage tutors</strong><small>Add tutors, teams, and school branches.</small></div>
@@ -159,7 +167,7 @@ export function DashboardPage() {
             <div><span>Open objections</span><strong>{loading ? '—' : stats.openObjections}</strong></div>
             <div><span>Active tutor directory</span><strong>{loading ? '—' : stats.activeTutors}</strong></div>
           </div>
-          <p className="elegant-summary-note">Only directly observed evidence should affect the teaching score.</p>
+          <p className="elegant-summary-note">Only directly observed evidence should affect the score.</p>
         </article>
       </section>
     </div>

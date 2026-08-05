@@ -7,6 +7,7 @@ import './workspace-redesign.css';
 import './directory-polish.css';
 import './tutor-polish.css';
 import './tutor-portal.css';
+import './model-settings.css';
 
 type ErrorBoundaryState = { error: Error | null };
 

@@ -26,6 +26,7 @@ const icons = {
   objections: <svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v5m0 3h.01" /></svg>,
   analytics: <svg viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7" /></svg>,
   tutors: <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+  settings: <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M7 14v6" /></svg>,
   access: <svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7zM9 12l2 2 4-5" /></svg>,
   logout: <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3m11-8h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5" /></svg>,
 };
@@ -71,10 +72,11 @@ export function AppShell({ children }: PropsWithChildren) {
           {canManage && <NavItem to="/analytics" label="Analytics" icon={icons.analytics} />}
         </nav>
 
-        {canManage && <div className="sidebar-label elegant-sidebar-label elegant-sidebar-label-secondary">Directory</div>}
+        {canManage && <div className="sidebar-label elegant-sidebar-label elegant-sidebar-label-secondary">Management</div>}
         {canManage && (
-          <nav className="nav-list elegant-nav" aria-label="Directory navigation">
+          <nav className="nav-list elegant-nav" aria-label="Management navigation">
             <NavItem to="/tutors" label="Tutors" icon={icons.tutors} />
+            <NavItem to="/model-settings" label="Model Settings" icon={icons.settings} />
             {isSuperAdmin && <NavItem to="/access" label="People & Access" icon={icons.access} />}
           </nav>
         )}
