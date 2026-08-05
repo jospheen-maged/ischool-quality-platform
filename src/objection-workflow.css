@@ -88,9 +88,113 @@
   border-top: 1px solid #e4ebf2;
 }
 
+.objection-workflow-note {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #d8e7f5;
+  border-radius: 12px;
+  background: #f7fbff;
+}
+
+.objection-workflow-note strong {
+  color: #173b5e;
+  font-size: 0.78rem;
+}
+
+.objection-workflow-note span {
+  color: #657b91;
+  font-size: 0.7rem;
+}
+
 .objection-decision-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.objection-approval-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #d9e5f1;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+}
+
+.objection-approval-card h3 {
+  margin: 0.35rem 0 0.4rem;
+  color: #18334f;
+  font-size: 1rem;
+  text-transform: capitalize;
+}
+
+.objection-approval-card p {
+  margin: 0;
+  color: #61778d;
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.objection-proposed-change {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid #e1e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.objection-proposed-change small {
+  color: #8999aa;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.objection-proposed-change strong {
+  color: #075fc9;
+  font-size: 0.8rem;
+}
+
+.objection-approval-actions {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e4ebf2;
+}
+
+.objection-approval-actions label {
+  display: grid;
+  gap: 0.42rem;
+  color: #34506b;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.objection-approval-actions textarea {
+  width: 100%;
+  min-height: 92px;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid #d4dfe9;
+  border-radius: 10px;
+  color: #18334f;
+  background: #fff;
+  font: inherit;
+  font-size: 0.76rem;
+  outline: none;
+  resize: vertical;
+}
+
+.objection-approval-actions textarea:focus {
+  border-color: #7ab2ef;
+  box-shadow: 0 0 0 4px rgba(8, 120, 249, 0.07);
+}
+
+.objection-approval-actions > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .objection-issued-decision {
@@ -117,7 +221,12 @@
   }
 
   .objection-claim-row .button,
-  .objection-decision-actions .button {
+  .objection-decision-actions .button,
+  .objection-approval-actions button {
     width: 100%;
+  }
+
+  .objection-approval-actions > div {
+    flex-direction: column-reverse;
   }
 }
