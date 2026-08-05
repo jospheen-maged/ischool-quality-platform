@@ -156,36 +156,26 @@ export function ReviewsPage() {
 
   const canCreate = profile?.role !== 'tutor';
   const isTutor = profile?.role === 'tutor';
-  const canPublish = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'qtl';
+  const canPublish = ['super_admin', 'admin', 'qtl', 'qc'].includes(profile?.role ?? '');
 
   async function publishReview(reviewId: string) {
     setPublishingId(reviewId);
     setError('');
     setSuccess('');
 
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) throw userError ?? new Error('No authenticated user.');
+    const { error: publishError } = await supabase.rpc('publish_review_to_tutor', {
+      p_review_id: reviewId,
+    });
 
-      const { error: updateError } = await supabase
-        .from('reviews')
-        .update({
-          status: 'published',
-          published_at: new Date().toISOString(),
-          published_by: userData.user.id,
-        })
-        .eq('id', reviewId);
-
-      if (updateError) throw updateError;
-
+    if (publishError) {
+      setError(publishError.message);
+    } else {
       setReviews((items) => items.map((item) => item.id === reviewId ? { ...item, status: 'published' } : item));
       setSelectedReview((item) => item?.id === reviewId ? { ...item, status: 'published' } : item);
       setSuccess('Review published successfully. It is now visible to the tutor.');
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to publish the review.');
-    } finally {
-      setPublishingId(null);
     }
+
+    setPublishingId(null);
   }
 
   return (
@@ -216,7 +206,7 @@ export function ReviewsPage() {
                   <p>{formatDate(selectedReview.session_date)} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
                 </div>
                 <div className="review-detail-actions">
-                  {canPublish && ['submitted', 'awaiting_approval'].includes(selectedReview.status) && (
+                  {canPublish && ['submitted', 'awaiting_approval', 'returned', 'reopened'].includes(selectedReview.status) && (
                     <button
                       className="button button-primary"
                       type="button"
