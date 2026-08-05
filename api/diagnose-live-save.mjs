@@ -40,6 +40,7 @@ export default async function handler(request, response) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  const branch = `Live Diagnostic ${Date.now()}`;
   let reviewId = null;
   try {
     const [{ data: profile }, { data: tutor }, { data: criteria }, { data: authUsersData, error: authUsersError }] = await Promise.all([
@@ -69,28 +70,51 @@ export default async function handler(request, response) {
       global: { headers: { Authorization: `Bearer ${verified.session.access_token}` } },
     });
 
-    const { data: review, error: reviewError } = await userClient
-      .from('reviews')
-      .insert({
-        tutor_id: tutor.id,
-        evaluator_id: authUser.id,
-        session_date: '2026-08-05',
-        school_branch: `Live Diagnostic ${Date.now()}`,
-        session_type: 'group',
-        students_present: 1,
-        age_level: 'Diagnostic',
-        observation_scope: 'full_session',
-        intended_learning_outcome: 'Temporary diagnostic review.',
-        learning_outcome_status: 'partially_achieved',
-        follow_up_status: 'none',
-        status: 'submitted',
-        submitted_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
+    const [roleResult, adminLikeResult, createResult] = await Promise.all([
+      userClient.rpc('current_role'),
+      userClient.rpc('is_admin_like'),
+      userClient.rpc('can_create_review', { p_evaluator_id: authUser.id }),
+    ]);
 
-    if (reviewError || !review) return response.status(500).json({ stage: 'review_insert', error: cleanError(reviewError) });
-    reviewId = review.id;
+    const payload = {
+      tutor_id: tutor.id,
+      evaluator_id: authUser.id,
+      session_date: '2026-08-05',
+      school_branch: branch,
+      session_type: 'group',
+      students_present: 1,
+      age_level: 'Diagnostic',
+      observation_scope: 'full_session',
+      intended_learning_outcome: 'Temporary diagnostic review.',
+      learning_outcome_status: 'partially_achieved',
+      follow_up_status: 'none',
+      status: 'submitted',
+      submitted_at: new Date().toISOString(),
+    };
+
+    const { error: plainInsertError } = await userClient.from('reviews').insert(payload);
+
+    const { data: createdRows } = await admin
+      .from('reviews')
+      .select('id')
+      .eq('school_branch', branch);
+
+    reviewId = createdRows?.[0]?.id || null;
+
+    if (plainInsertError || !reviewId) {
+      return response.status(500).json({
+        stage: 'plain_review_insert',
+        currentRole: roleResult.data,
+        isAdminLike: adminLikeResult.data,
+        canCreateReview: createResult.data,
+        helperErrors: {
+          currentRole: cleanError(roleResult.error),
+          isAdminLike: cleanError(adminLikeResult.error),
+          canCreateReview: cleanError(createResult.error),
+        },
+        error: cleanError(plainInsertError),
+      });
+    }
 
     const scoreRows = criteria.map((criterion) => criterion.criterion_type === 'rating'
       ? {
@@ -125,7 +149,14 @@ export default async function handler(request, response) {
     });
     if (feedbackError) return response.status(500).json({ stage: 'feedback_insert', reviewId, error: cleanError(feedbackError) });
 
-    return response.status(200).json({ ok: true, stage: 'complete', criteriaCount: criteria.length });
+    return response.status(200).json({
+      ok: true,
+      stage: 'complete',
+      currentRole: roleResult.data,
+      isAdminLike: adminLikeResult.data,
+      canCreateReview: createResult.data,
+      criteriaCount: criteria.length,
+    });
   } catch (error) {
     return response.status(500).json({ stage: 'unexpected', reviewId, error: cleanError(error) });
   } finally {
