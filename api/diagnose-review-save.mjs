@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const FALLBACK_URL = 'https://mxfeyumgdlmiplognpry.supabase.co';
+const FALLBACK_PUBLIC_KEY = 'sb_publishable_8B_2gV3-U1QTA0J9wfsFrg_IhAD-9Av';
 const DIAGNOSTIC_KEY = '9f3d3f9b-6e2f-49b5-98a8-5d7ca2fa4f21';
 const ADMIN_EMAIL = 'josphen.maged@ischooltech.com';
 
@@ -23,6 +24,24 @@ function cleanError(error) {
   };
 }
 
+function reviewPayload(tutorId, evaluatorId, branch) {
+  return {
+    tutor_id: tutorId,
+    evaluator_id: evaluatorId,
+    session_date: '2026-08-05',
+    school_branch: branch,
+    session_type: 'group',
+    students_present: 1,
+    age_level: 'Diagnostic',
+    observation_scope: 'full_session',
+    intended_learning_outcome: 'Temporary diagnostic review. This record is deleted immediately.',
+    learning_outcome_status: 'partially_achieved',
+    follow_up_status: 'none',
+    status: 'submitted',
+    submitted_at: new Date().toISOString(),
+  };
+}
+
 export default async function handler(request, response) {
   response.setHeader('Content-Type', 'application/json');
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
@@ -30,6 +49,8 @@ export default async function handler(request, response) {
 
   const configuredUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseUrl = validUrl(configuredUrl) ? String(configuredUrl).trim() : FALLBACK_URL;
+  const configuredPublicKey = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+  const publicKey = configuredPublicKey.startsWith('sb_publishable_') ? configuredPublicKey : FALLBACK_PUBLIC_KEY;
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
   if (!serviceRoleKey) return response.status(503).json({ stage: 'configuration', error: 'Missing service role key.' });
 
@@ -37,7 +58,7 @@ export default async function handler(request, response) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  let reviewId = null;
+  const createdReviewIds = [];
   try {
     const [{ data: profileRows, error: profileRowsError }, { data: authUsersData, error: authUsersError }] = await Promise.all([
       admin.from('profiles').select('id, email, role, is_active').eq('email', ADMIN_EMAIL),
@@ -46,117 +67,80 @@ export default async function handler(request, response) {
     if (profileRowsError) return response.status(500).json({ stage: 'profile_lookup', error: cleanError(profileRowsError) });
     if (authUsersError) return response.status(500).json({ stage: 'auth_lookup', error: cleanError(authUsersError) });
 
-    const authMatches = (authUsersData?.users || [])
-      .filter((user) => user.email?.toLowerCase() === ADMIN_EMAIL)
-      .map((user) => ({ id: user.id, email: user.email, confirmedAt: user.confirmed_at || null }));
-    const profileMatches = (profileRows || []).map((profile) => ({
-      id: profile.id,
-      email: profile.email,
-      role: profile.role,
-      isActive: profile.is_active,
-    }));
-
-    const evaluator = profileRows?.[0] || null;
-    if (!evaluator) return response.status(500).json({ stage: 'evaluator_lookup', authMatches, profileMatches, error: 'Evaluator not found.' });
+    const authUser = (authUsersData?.users || []).find((user) => user.email?.toLowerCase() === ADMIN_EMAIL);
+    const evaluator = profileRows?.find((profile) => profile.id === authUser?.id) || null;
+    if (!authUser || !evaluator) {
+      return response.status(500).json({
+        stage: 'account_linkage',
+        authUserId: authUser?.id || null,
+        profileIds: (profileRows || []).map((profile) => profile.id),
+        error: 'Auth user and Super Admin profile are not linked.',
+      });
+    }
 
     const { data: tutor, error: tutorError } = await admin
       .from('tutors')
       .select('id, employee_code, full_name')
       .eq('employee_code', 'TEST-001')
       .maybeSingle();
-    if (tutorError || !tutor) return response.status(500).json({ stage: 'tutor_lookup', authMatches, profileMatches, error: cleanError(tutorError) || 'Test tutor not found.' });
+    if (tutorError || !tutor) return response.status(500).json({ stage: 'tutor_lookup', error: cleanError(tutorError) || 'Test tutor not found.' });
 
-    const { data: existingReviews, error: existingError } = await admin
+    const { data: generated, error: generateError } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: ADMIN_EMAIL,
+    });
+    if (generateError || !generated?.properties?.hashed_token) {
+      return response.status(500).json({ stage: 'generate_user_token', error: cleanError(generateError) || 'Unable to generate a user-scoped token.' });
+    }
+
+    const authClient = createClient(supabaseUrl, publicKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const { data: verified, error: verifyError } = await authClient.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: generated.properties.hashed_token,
+    });
+    if (verifyError || !verified.session?.access_token) {
+      return response.status(500).json({ stage: 'verify_user_token', error: cleanError(verifyError) || 'Unable to verify the user-scoped token.' });
+    }
+
+    const userClient = createClient(supabaseUrl, publicKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${verified.session.access_token}` } },
+    });
+
+    const { data: roleData, error: roleError } = await userClient.rpc('current_role');
+    if (roleError) return response.status(500).json({ stage: 'current_role', error: cleanError(roleError) });
+
+    const { data: userReview, error: userReviewError } = await userClient
       .from('reviews')
-      .select('id, status, school_branch, created_at')
-      .eq('tutor_id', tutor.id)
-      .order('created_at', { ascending: false })
-      .limit(5);
-    if (existingError) return response.status(500).json({ stage: 'existing_review_lookup', authMatches, profileMatches, error: cleanError(existingError) });
+      .insert(reviewPayload(tutor.id, authUser.id, 'RLS Diagnostic Branch'))
+      .select('id')
+      .single();
 
-    const existing = [];
-    for (const item of existingReviews || []) {
-      const [{ count: scoreCount }, { count: feedbackCount }] = await Promise.all([
-        admin.from('review_scores').select('*', { count: 'exact', head: true }).eq('review_id', item.id),
-        admin.from('review_feedback').select('*', { count: 'exact', head: true }).eq('review_id', item.id),
-      ]);
-      existing.push({
-        id: item.id,
-        status: item.status,
-        schoolBranch: item.school_branch,
-        createdAt: item.created_at,
-        scoreCount: scoreCount || 0,
-        feedbackCount: feedbackCount || 0,
+    if (userReview?.id) createdReviewIds.push(userReview.id);
+    if (userReviewError || !userReview) {
+      return response.status(500).json({
+        stage: 'user_rls_review_insert',
+        currentRole: roleData,
+        authUserId: authUser.id,
+        profileRole: evaluator.role,
+        profileActive: evaluator.is_active,
+        error: cleanError(userReviewError) || 'RLS insert returned no record.',
       });
     }
 
-    const { data: criteria, error: criteriaError } = await admin
-      .from('evaluation_criteria')
-      .select('id, criterion_type')
-      .eq('is_active', true);
-    if (criteriaError || !criteria?.length) return response.status(500).json({ stage: 'criteria_lookup', authMatches, profileMatches, existing, error: cleanError(criteriaError) || 'No criteria found.' });
-
-    const { data: review, error: reviewError } = await admin
-      .from('reviews')
-      .insert({
-        tutor_id: tutor.id,
-        evaluator_id: evaluator.id,
-        session_date: '2026-08-05',
-        school_branch: 'Diagnostic Branch',
-        session_type: 'group',
-        students_present: 1,
-        age_level: 'Diagnostic',
-        observation_scope: 'full_session',
-        intended_learning_outcome: 'Temporary diagnostic review. This record is deleted immediately.',
-        learning_outcome_status: 'partially_achieved',
-        follow_up_status: 'none',
-        status: 'submitted',
-        submitted_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
-    if (reviewError || !review) return response.status(500).json({ stage: 'review_insert', authMatches, profileMatches, existing, error: cleanError(reviewError) || 'Review insert returned no record.' });
-    reviewId = review.id;
-
-    const scoreRows = criteria.map((criterion) => criterion.criterion_type === 'rating'
-      ? {
-          review_id: review.id,
-          criterion_id: criterion.id,
-          numeric_score: 4,
-          is_observed: true,
-          compliance_result: null,
-          is_applicable: null,
-          is_external: false,
-          timestamp_seconds: null,
-          evidence: 'Temporary diagnostic evidence.',
-        }
-      : {
-          review_id: review.id,
-          criterion_id: criterion.id,
-          numeric_score: null,
-          is_observed: true,
-          compliance_result: 'clear',
-          is_applicable: true,
-          is_external: false,
-          timestamp_seconds: null,
-          evidence: 'Temporary diagnostic evidence.',
-        });
-
-    const { error: scoresError } = await admin.from('review_scores').insert(scoreRows);
-    if (scoresError) return response.status(500).json({ stage: 'score_insert', authMatches, profileMatches, existing, reviewId, error: cleanError(scoresError) });
-
-    const { error: feedbackError } = await admin.from('review_feedback').insert({
-      review_id: review.id,
-      observed_strength: 'Temporary diagnostic strength.',
-      development_priority: 'Temporary diagnostic priority.',
-      required_action: 'Temporary diagnostic action.',
+    return response.status(200).json({
+      ok: true,
+      stage: 'user_rls_review_insert_complete',
+      currentRole: roleData,
+      authUserId: authUser.id,
+      profileRole: evaluator.role,
+      profileActive: evaluator.is_active,
     });
-    if (feedbackError) return response.status(500).json({ stage: 'feedback_insert', authMatches, profileMatches, existing, reviewId, error: cleanError(feedbackError) });
-
-    return response.status(200).json({ ok: true, stage: 'complete', authMatches, profileMatches, existing, criteriaCount: criteria.length });
   } catch (error) {
-    return response.status(500).json({ stage: 'unexpected', reviewId, error: cleanError(error) });
+    return response.status(500).json({ stage: 'unexpected', error: cleanError(error) });
   } finally {
-    if (reviewId) await admin.from('reviews').delete().eq('id', reviewId);
+    if (createdReviewIds.length) await admin.from('reviews').delete().in('id', createdReviewIds);
   }
 }
