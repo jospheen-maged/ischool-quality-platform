@@ -5,6 +5,7 @@ import './styles.css';
 import './design-overrides.css';
 import './workspace-redesign.css';
 import './directory-polish.css';
+import './tutor-polish.css';
 
 type ErrorBoundaryState = { error: Error | null };
 
