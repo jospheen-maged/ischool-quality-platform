@@ -32,6 +32,7 @@ function fallbackProfile(user: User): Profile {
     role,
     tutor_id: typeof user.user_metadata?.tutor_id === 'string' ? user.user_metadata.tutor_id : null,
     is_active: true,
+    permissions: {},
   };
 }
 
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   async function loadProfile(user: User) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email, role, tutor_id, is_active')
+      .select('id, full_name, email, role, tutor_id, is_active, permissions')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    setProfile(data ? data as Profile : fallbackProfile(user));
+    setProfile(data ? { ...data, permissions: data.permissions ?? {} } as Profile : fallbackProfile(user));
   }
 
   async function refreshProfile() {
