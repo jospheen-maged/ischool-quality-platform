@@ -94,31 +94,26 @@ export function AccessPage() {
   }
 
   return (
-    <div className="page-stack admin-page">
-      <header className="admin-page-header">
+    <div className="page-stack admin-page elegant-directory-page">
+      <header className="admin-page-header elegant-directory-header">
         <div>
-          <p className="eyebrow">Security and permissions</p>
-          <h1>Accounts & Access</h1>
-          <p>Create Management and QC accounts, then control what each person can see and do.</p>
+          <span className="elegant-page-kicker">Team directory</span>
+          <h1>People & Access</h1>
+          <p>Add Management, Quality Team Lead, and QC accounts directly from the workspace.</p>
         </div>
         <button className="button button-primary" type="button" onClick={() => setShowInvite((value) => !value)}>
-          {showInvite ? 'Close form' : '+ Create account'}
+          {showInvite ? 'Close' : 'Add person'}
         </button>
       </header>
-
-      <section className="access-role-grid">
-        <article><span className="role-mark role-management">M</span><div><strong>Management</strong><p>Sees all reviews, objections, analytics, tutor records, and can manage operational data.</p></div></article>
-        <article><span className="role-mark role-qc">QC</span><div><strong>Quality Control</strong><p>Creates evaluations, sees assigned reviews, and handles available or assigned objections.</p></div></article>
-      </section>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
       {showInvite && (
-        <form className="panel admin-form-card" onSubmit={inviteAccount}>
+        <form className="panel admin-form-card elegant-form-card" onSubmit={inviteAccount}>
           <div className="admin-form-heading">
-            <div><p className="eyebrow">New account</p><h2>Invite a team member</h2></div>
-            <span>They will receive an email to set their password securely.</span>
+            <div><span className="elegant-page-kicker">New account</span><h2>Invite a team member</h2></div>
+            <span>An invitation will be sent to their email so they can set a password securely.</span>
           </div>
           <div className="admin-form-grid admin-form-grid-three">
             <label>Full name<input value={invite.fullName} onChange={(event) => setInvite({ ...invite, fullName: event.target.value })} placeholder="Team member name" required /></label>
@@ -126,26 +121,31 @@ export function AccessPage() {
             <label>Access role<select value={invite.role} onChange={(event) => setInvite({ ...invite, role: event.target.value as InviteForm['role'] })}><option value="admin">Management</option><option value="qtl">Quality Team Lead</option><option value="qc">Quality Control</option></select></label>
           </div>
           <div className="admin-form-actions">
-            <button className="button button-secondary" type="button" onClick={() => { setInvite(emptyInvite); setShowInvite(false); }}>Cancel</button>
+            <button className="button elegant-secondary-button" type="button" onClick={() => { setInvite(emptyInvite); setShowInvite(false); }}>Cancel</button>
             <button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Sending invitation…' : 'Send invitation'}</button>
           </div>
         </form>
       )}
 
-      <section className="panel directory-panel">
+      <section className="access-role-grid elegant-role-grid">
+        <article><span className="role-mark role-management">M</span><div><strong>Management</strong><p>Full operational visibility, analytics, tutors, reviews, and objections.</p></div></article>
+        <article><span className="role-mark role-qc">QC</span><div><strong>Quality Control</strong><p>Creates evaluations and works on relevant reviews and objections.</p></div></article>
+      </section>
+
+      <section className="panel directory-panel elegant-directory-panel">
         <div className="directory-toolbar">
-          <div><strong>{profiles.length}</strong><span>Total accounts</span></div>
+          <div><strong>{profiles.length}</strong><span>Total people</span></div>
           <div><strong>{profiles.filter((item) => item.is_active).length}</strong><span>Active accounts</span></div>
         </div>
 
         {loading ? (
-          <div className="empty-state">Loading accounts…</div>
+          <div className="empty-state">Loading people…</div>
         ) : profiles.length === 0 ? (
-          <div className="empty-state"><strong>No accounts found</strong></div>
+          <div className="empty-state"><strong>No people found</strong></div>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Team member</th><th>Role</th><th>Status</th><th>Access</th></tr></thead>
+              <thead><tr><th>Person</th><th>Role</th><th>Status</th><th>Access</th></tr></thead>
               <tbody>
                 {profiles.map((item) => {
                   const isSelf = item.id === currentProfile?.id;

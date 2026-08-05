@@ -107,7 +107,7 @@ export function TutorsPage() {
       if (insertError) throw insertError;
       setForm(emptyForm);
       setShowForm(false);
-      setSuccess('Tutor added successfully. The tutor is now available in New Evaluation.');
+      setSuccess('Tutor added successfully and is now available in New Evaluation.');
       await loadData();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to add tutor.');
@@ -130,15 +130,15 @@ export function TutorsPage() {
   }
 
   return (
-    <div className="page-stack admin-page">
-      <header className="admin-page-header">
+    <div className="page-stack admin-page elegant-directory-page">
+      <header className="admin-page-header elegant-directory-header">
         <div>
-          <p className="eyebrow">People directory</p>
+          <span className="elegant-page-kicker">Tutor directory</span>
           <h1>Tutors</h1>
-          <p>Add tutors here first. Active tutors automatically appear in the New Evaluation tutor list.</p>
+          <p>Add tutors, teams, and school branches directly from the workspace. Active tutors appear automatically in New Evaluation.</p>
         </div>
         <button className="button button-primary" type="button" onClick={() => setShowForm((value) => !value)}>
-          {showForm ? 'Close form' : '+ Add tutor'}
+          {showForm ? 'Close' : 'Add tutor'}
         </button>
       </header>
 
@@ -146,10 +146,10 @@ export function TutorsPage() {
       {success && <div className="alert alert-success">{success}</div>}
 
       {showForm && (
-        <form className="panel admin-form-card" onSubmit={addTutor}>
+        <form className="panel admin-form-card elegant-form-card" onSubmit={addTutor}>
           <div className="admin-form-heading">
-            <div><p className="eyebrow">New record</p><h2>Add a tutor</h2></div>
-            <span>Team and school are created automatically when new.</span>
+            <div><span className="elegant-page-kicker">New tutor</span><h2>Add tutor details</h2></div>
+            <span>New team and school names are created automatically.</span>
           </div>
           <div className="admin-form-grid">
             <label>Employee / Tutor ID<input value={form.employeeCode} onChange={(event) => setForm({ ...form, employeeCode: event.target.value })} placeholder="T-17746" required /></label>
@@ -161,13 +161,13 @@ export function TutorsPage() {
           <datalist id="team-options">{teams.map((team) => <option key={team.id} value={team.name} />)}</datalist>
           <datalist id="branch-options">{branches.map((branch) => <option key={branch.id} value={branch.name} />)}</datalist>
           <div className="admin-form-actions">
-            <button className="button button-secondary" type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }}>Cancel</button>
+            <button className="button elegant-secondary-button" type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }}>Cancel</button>
             <button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Adding tutor…' : 'Add tutor'}</button>
           </div>
         </form>
       )}
 
-      <section className="panel directory-panel">
+      <section className="panel directory-panel elegant-directory-panel">
         <div className="directory-toolbar">
           <div><strong>{tutors.length}</strong><span>Total tutors</span></div>
           <div><strong>{tutors.filter((tutor) => tutor.is_active).length}</strong><span>Active</span></div>
