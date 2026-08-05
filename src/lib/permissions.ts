@@ -87,7 +87,7 @@ export const permissionGroups: Array<{
       { key: 'view_dashboard', label: 'Dashboard', description: 'Open the workspace overview.' },
       { key: 'create_evaluation', label: 'New Evaluation', description: 'Open and submit evaluation forms.' },
       { key: 'view_reviews', label: 'Reviews', description: 'See review records allowed by the user role.' },
-      { key: 'view_objections', label: 'Objections', description: 'See the objection workspace allowed by the user role.' },
+      { key: 'view_objections', label: 'Evaluation Re-consideration', description: 'See Evaluation Re-consideration cases allowed by the user role.' },
       { key: 'view_analytics', label: 'Analytics', description: 'Open leadership analytics using records visible to the role.' },
       { key: 'manage_tutors', label: 'Tutors', description: 'Open the tutor directory and management tools.' },
       { key: 'manage_model_settings', label: 'Model Settings', description: 'Manage metrics, compliance items, weights, and projects.' },
@@ -100,18 +100,17 @@ export const permissionGroups: Array<{
     description: 'Control sensitive actions inside visible pages.',
     permissions: [
       { key: 'publish_reviews', label: 'Publish to Tutor', description: 'Publish eligible reviews. QC can publish only reviews they created.' },
-      { key: 'review_objections', label: 'Review Objections', description: 'Claim and review independent objection cases.' },
+      { key: 'review_objections', label: 'Review Re-consideration Cases', description: 'Take decisions on Evaluation Re-consideration cases allowed by the role.' },
     ],
   },
 ];
 
 export function getEffectivePermissions(profile: Profile | null | undefined): PermissionMap {
   if (!profile) return { ...noPermissions };
+  if (profile.role === 'super_admin') return { ...rolePermissionDefaults.super_admin };
   const defaults = rolePermissionDefaults[profile.role];
   const overrides = profile.permissions ?? {};
-  const effective = { ...defaults, ...overrides };
-  if (profile.role === 'super_admin') effective.manage_access = true;
-  return effective;
+  return { ...defaults, ...overrides };
 }
 
 export function hasPermission(profile: Profile | null | undefined, key: PermissionKey) {
