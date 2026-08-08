@@ -1,0 +1,93 @@
+.review-edit-page { gap: 1rem; }
+
+.review-edit-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.review-edit-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.review-edit-warning span { display: block; }
+
+.review-edit-metric-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.review-edit-metric {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(360px, 1.2fr);
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e9f0;
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.review-edit-metric h3 {
+  margin: 0.35rem 0;
+  color: #193650;
+  font-size: 0.86rem;
+}
+
+.review-edit-metric p {
+  margin: 0;
+  color: #6b7f93;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.review-edit-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.review-edit-controls label {
+  display: grid;
+  gap: 0.35rem;
+  color: #3a556f;
+  font-size: 0.69rem;
+  font-weight: 760;
+}
+
+.review-edit-controls .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: end;
+  min-height: 38px;
+}
+
+.review-delete-button,
+.review-row-actions .review-delete-link {
+  color: #b42318 !important;
+  border-color: #f1c4c0 !important;
+  background: #fff7f6 !important;
+}
+
+.review-delete-button:hover,
+.review-row-actions .review-delete-link:hover {
+  color: #8f1d13 !important;
+  background: #ffefed !important;
+}
+
+.review-edit-link {
+  color: #075fc9 !important;
+  font-weight: 760;
+}
+
+@media (max-width: 900px) {
+  .review-edit-metric { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .review-edit-controls { grid-template-columns: 1fr; }
+  .review-edit-header-actions { width: 100%; flex-direction: column-reverse; align-items: stretch; }
+  .review-edit-header-actions > * { width: 100%; text-align: center; }
+}
