@@ -1,120 +1,7 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import '../review-management.css';
-
-type EvaluationMode = 'normal_session' | 'session_12';
-
-type ReviewRecord = {
-  id: string;
-  evaluator_id: string;
-  tutor_id: string;
-  project_id: string | null;
-  cycle_id: string | null;
-  evaluation_mode: EvaluationMode;
-  session_date: string | null;
-  school_branch: string | null;
-  course_track: string | null;
-  session_topic: string | null;
-  session_type: string | null;
-  external_session_id: string | null;
-  students_present: number | null;
-  age_level: string | null;
-  observation_scope: string;
-  observation_minutes: number | null;
-  environment_readiness: string | null;
-  intended_learning_outcome: string | null;
-  external_school_cause: string | null;
-  context_details: string | null;
-  learning_outcome_status: string;
-  follow_up_status: string;
-  status: string;
-};
-
-type TutorOption = { id: string; employee_code: string; full_name: string };
-type OrgOption = { id: string; name: string; is_active: boolean };
-type CycleOption = { id: string; name: string; start_date: string; end_date: string; status: string; is_default: boolean };
-type ModelSettings = {
-  teaching_weight: number;
-  compliance_weight: number;
-  project_weight: number;
-  final_teaching_weight: number;
-  final_compliance_weight: number;
-  final_project_weight: number;
-};
-type Criterion = {
-  id: string;
-  code: string;
-  title: string;
-  description: string | null;
-  criterion_type: 'rating' | 'compliance';
-  weight_percentage: number;
-  anchor_1: string | null;
-  anchor_3: string | null;
-  anchor_5: string | null;
-  sort_order: number;
-};
-type ProjectMetric = {
-  id: string;
-  scope: EvaluationMode;
-  code: string;
-  title: string;
-  description: string | null;
-  weight_percentage: number;
-  anchor_1: string | null;
-  anchor_3: string | null;
-  anchor_5: string | null;
-  sort_order: number;
-};
-type ScoreRow = {
-  id: string;
-  criterion_id: string;
-  numeric_score: number | null;
-  is_observed: boolean;
-  compliance_result: string | null;
-  is_applicable: boolean | null;
-  is_external: boolean;
-  external_details: string | null;
-  severity_reason: string | null;
-  timestamp_seconds: number | null;
-  evidence: string | null;
-};
-type ProjectEvaluationRow = {
-  id: string;
-  metric_id: string;
-  numeric_score: number | null;
-  is_observed: boolean;
-  evidence: string | null;
-  timestamp_seconds: number | null;
-};
-type ScoreState = {
-  score: string;
-  observed: boolean;
-  compliance: string;
-  evidence: string;
-  timestamp: string;
-  severityReason: string;
-  externalDetails: string;
-};
-type FeedbackState = {
-  observedStrength: string;
-  developmentPriority: string;
-  studentImpact: string;
-  requiredAction: string;
-  followUpPlan: string;
-  followUpDate: string;
-  internalNotes: string;
-};
-
-const emptyFeedback: FeedbackState = {
-  observedStrength: '',
-  developmentPriority: '',
-  studentImpact: '',
-  requiredAction: '',
-  followUpPlan: '',
-  followUpDate: '',
-  internalNotes: '',
-};
 
 const complianceOptions = [
   ['clear', 'Clear'],
@@ -123,7 +10,7 @@ const complianceOptions = [
   ['red_flag', 'Red Flag'],
   ['external_cause', 'External Cause'],
   ['not_applicable', 'N/A'],
-] as const;
+];
 
 function toTimestamp(seconds: number | null) {
   if (seconds === null) return '';
@@ -139,26 +26,46 @@ function timestampToSeconds(value: string) {
   return minutes * 60 + seconds;
 }
 
+const emptyAnswer = {
+  score: '',
+  observed: true,
+  compliance: '',
+  evidence: '',
+  timestamp: '',
+  severityReason: '',
+  externalDetails: '',
+};
+
+const emptyFeedback = {
+  observedStrength: '',
+  developmentPriority: '',
+  studentImpact: '',
+  requiredAction: '',
+  followUpPlan: '',
+  followUpDate: '',
+  internalNotes: '',
+};
+
 export function EditReviewPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reviewId = searchParams.get('review');
-  const [review, setReview] = useState<ReviewRecord | null>(null);
-  const [tutors, setTutors] = useState<TutorOption[]>([]);
-  const [orgs, setOrgs] = useState<OrgOption[]>([]);
-  const [cycles, setCycles] = useState<CycleOption[]>([]);
-  const [settings, setSettings] = useState<ModelSettings | null>(null);
-  const [criteria, setCriteria] = useState<Criterion[]>([]);
-  const [projectMetrics, setProjectMetrics] = useState<ProjectMetric[]>([]);
-  const [answers, setAnswers] = useState<Record<string, ScoreState>>({});
-  const [projectAnswers, setProjectAnswers] = useState<Record<string, ScoreState>>({});
-  const [feedback, setFeedback] = useState<FeedbackState>(emptyFeedback);
+  const [review, setReview] = useState<any>(null);
+  const [tutors, setTutors] = useState<any[]>([]);
+  const [orgs, setOrgs] = useState<any[]>([]);
+  const [cycles, setCycles] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>(null);
+  const [criteria, setCriteria] = useState<any[]>([]);
+  const [projectMetrics, setProjectMetrics] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [projectAnswers, setProjectAnswers] = useState<Record<string, any>>({});
+  const [feedback, setFeedback] = useState({ ...emptyFeedback });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function load() {
+    async function loadReviewEditor() {
       if (!reviewId) {
         setError('Review ID is missing.');
         setLoading(false);
@@ -167,41 +74,43 @@ export function EditReviewPage() {
 
       setLoading(true);
       setError('');
-      const [reviewResult, tutorsResult, orgsResult, cyclesResult, settingsResult, criteriaResult, metricsResult, scoresResult, projectScoresResult, feedbackResult] = await Promise.all([
+      const results = await Promise.all([
         supabase.from('reviews').select('id, evaluator_id, tutor_id, project_id, cycle_id, evaluation_mode, session_date, school_branch, course_track, session_topic, session_type, external_session_id, students_present, age_level, observation_scope, observation_minutes, environment_readiness, intended_learning_outcome, external_school_cause, context_details, learning_outcome_status, follow_up_status, status').eq('id', reviewId).maybeSingle(),
         supabase.from('tutors').select('id, employee_code, full_name').eq('is_active', true).order('full_name'),
         supabase.from('projects').select('id, name, is_active').order('sort_order').order('name'),
         supabase.from('evaluation_cycles').select('id, name, start_date, end_date, status, is_default').order('start_date', { ascending: false }),
         supabase.from('quality_model_settings').select('teaching_weight, compliance_weight, project_weight, final_teaching_weight, final_compliance_weight, final_project_weight').eq('id', true).single(),
-        supabase.from('evaluation_criteria').select('id, code, title, description, criterion_type, weight_percentage, anchor_1, anchor_3, anchor_5, sort_order').eq('is_active', true).order('sort_order'),
-        supabase.from('project_evaluation_metrics').select('id, scope, code, title, description, weight_percentage, anchor_1, anchor_3, anchor_5, sort_order').eq('is_active', true).order('sort_order'),
-        supabase.from('review_scores').select('id, criterion_id, numeric_score, is_observed, compliance_result, is_applicable, is_external, external_details, severity_reason, timestamp_seconds, evidence').eq('review_id', reviewId),
+        supabase.from('evaluation_criteria').select('id, code, title, description, criterion_type, weight_percentage, sort_order').eq('is_active', true).order('sort_order'),
+        supabase.from('project_evaluation_metrics').select('id, scope, code, title, description, weight_percentage, sort_order').eq('is_active', true).order('sort_order'),
+        supabase.from('review_scores').select('id, criterion_id, numeric_score, is_observed, compliance_result, is_external, external_details, severity_reason, timestamp_seconds, evidence').eq('review_id', reviewId),
         supabase.from('review_project_evaluations').select('id, metric_id, numeric_score, is_observed, evidence, timestamp_seconds').eq('review_id', reviewId),
         supabase.from('review_feedback').select('observed_strength, development_priority, student_impact, required_action, follow_up_plan, follow_up_date, internal_notes').eq('review_id', reviewId).maybeSingle(),
       ]);
 
-      const firstError = reviewResult.error || tutorsResult.error || orgsResult.error || cyclesResult.error || settingsResult.error || criteriaResult.error || metricsResult.error || scoresResult.error || projectScoresResult.error || feedbackResult.error;
+      const firstError = results.map((item) => item.error).find(Boolean);
       if (firstError) {
         setError(firstError.message);
         setLoading(false);
         return;
       }
+
+      const [reviewResult, tutorsResult, orgsResult, cyclesResult, settingsResult, criteriaResult, metricsResult, scoresResult, projectScoresResult, feedbackResult] = results;
       if (!reviewResult.data) {
         setError('This review is not available to your account.');
         setLoading(false);
         return;
       }
 
-      setReview(reviewResult.data as ReviewRecord);
-      setTutors((tutorsResult.data ?? []) as TutorOption[]);
-      setOrgs((orgsResult.data ?? []) as OrgOption[]);
-      setCycles((cyclesResult.data ?? []) as CycleOption[]);
-      setSettings(settingsResult.data as ModelSettings);
-      setCriteria((criteriaResult.data ?? []) as Criterion[]);
-      setProjectMetrics((metricsResult.data ?? []) as ProjectMetric[]);
+      setReview(reviewResult.data);
+      setTutors(tutorsResult.data ?? []);
+      setOrgs(orgsResult.data ?? []);
+      setCycles(cyclesResult.data ?? []);
+      setSettings(settingsResult.data);
+      setCriteria(criteriaResult.data ?? []);
+      setProjectMetrics(metricsResult.data ?? []);
 
-      const scoreMap: Record<string, ScoreState> = {};
-      ((scoresResult.data ?? []) as ScoreRow[]).forEach((item) => {
+      const scoreMap: Record<string, any> = {};
+      (scoresResult.data ?? []).forEach((item: any) => {
         scoreMap[item.criterion_id] = {
           score: item.numeric_score === null ? '' : String(item.numeric_score),
           observed: item.is_observed,
@@ -214,87 +123,71 @@ export function EditReviewPage() {
       });
       setAnswers(scoreMap);
 
-      const projectMap: Record<string, ScoreState> = {};
-      ((projectScoresResult.data ?? []) as ProjectEvaluationRow[]).forEach((item) => {
+      const projectMap: Record<string, any> = {};
+      (projectScoresResult.data ?? []).forEach((item: any) => {
         projectMap[item.metric_id] = {
+          ...emptyAnswer,
           score: item.numeric_score === null ? '' : String(item.numeric_score),
           observed: item.is_observed,
-          compliance: '',
           evidence: item.evidence ?? '',
           timestamp: toTimestamp(item.timestamp_seconds),
-          severityReason: '',
-          externalDetails: '',
         };
       });
       setProjectAnswers(projectMap);
 
-      const savedFeedback = feedbackResult.data;
-      setFeedback(savedFeedback ? {
-        observedStrength: savedFeedback.observed_strength ?? '',
-        developmentPriority: savedFeedback.development_priority ?? '',
-        studentImpact: savedFeedback.student_impact ?? '',
-        requiredAction: savedFeedback.required_action ?? '',
-        followUpPlan: savedFeedback.follow_up_plan ?? '',
-        followUpDate: savedFeedback.follow_up_date ?? '',
-        internalNotes: savedFeedback.internal_notes ?? '',
-      } : emptyFeedback);
+      const savedFeedback: any = feedbackResult.data;
+      if (savedFeedback) {
+        setFeedback({
+          observedStrength: savedFeedback.observed_strength ?? '',
+          developmentPriority: savedFeedback.development_priority ?? '',
+          studentImpact: savedFeedback.student_impact ?? '',
+          requiredAction: savedFeedback.required_action ?? '',
+          followUpPlan: savedFeedback.follow_up_plan ?? '',
+          followUpDate: savedFeedback.follow_up_date ?? '',
+          internalNotes: savedFeedback.internal_notes ?? '',
+        });
+      }
       setLoading(false);
     }
 
-    void load();
+    void loadReviewEditor();
   }, [reviewId]);
 
-  const teachingCriteria = useMemo(() => criteria.filter((item) => item.criterion_type === 'rating'), [criteria]);
-  const complianceCriteria = useMemo(() => criteria.filter((item) => item.criterion_type === 'compliance'), [criteria]);
-  const selectedProjectMetrics = useMemo(() => projectMetrics.filter((item) => item.scope === review?.evaluation_mode), [projectMetrics, review?.evaluation_mode]);
-
-  const weights = useMemo(() => {
-    if (!review || !settings) return { teaching: 0, compliance: 0, project: 0 };
-    return review.evaluation_mode === 'session_12'
-      ? { teaching: Number(settings.final_teaching_weight), compliance: Number(settings.final_compliance_weight), project: Number(settings.final_project_weight) }
-      : { teaching: Number(settings.teaching_weight), compliance: Number(settings.compliance_weight), project: Number(settings.project_weight) };
-  }, [review, settings]);
-
-  function updateAnswer(id: string, patch: Partial<ScoreState>) {
-    setAnswers((current) => ({
-      ...current,
-      [id]: {
-        score: '', observed: true, compliance: '', evidence: '', timestamp: '', severityReason: '', externalDetails: '',
-        ...(current[id] ?? {}),
-        ...patch,
-      },
-    }));
+  function setReviewField(name: string, value: unknown) {
+    setReview((current: any) => ({ ...current, [name]: value }));
   }
 
-  function updateProjectAnswer(id: string, patch: Partial<ScoreState>) {
-    setProjectAnswers((current) => ({
-      ...current,
-      [id]: {
-        score: '', observed: true, compliance: '', evidence: '', timestamp: '', severityReason: '', externalDetails: '',
-        ...(current[id] ?? {}),
-        ...patch,
-      },
-    }));
+  function updateAnswer(id: string, patch: Record<string, unknown>) {
+    setAnswers((current) => ({ ...current, [id]: { ...emptyAnswer, ...(current[id] ?? {}), ...patch } }));
   }
 
-  async function save(event: FormEvent<HTMLFormElement>) {
+  function updateProjectAnswer(id: string, patch: Record<string, unknown>) {
+    setProjectAnswers((current) => ({ ...current, [id]: { ...emptyAnswer, ...(current[id] ?? {}), ...patch } }));
+  }
+
+  const teachingCriteria = criteria.filter((item) => item.criterion_type === 'rating');
+  const complianceCriteria = criteria.filter((item) => item.criterion_type === 'compliance');
+  const selectedProjectMetrics = projectMetrics.filter((item) => item.scope === review?.evaluation_mode);
+  const isSession12 = review?.evaluation_mode === 'session_12';
+  const weights = settings ? {
+    teaching: Number(isSession12 ? settings.final_teaching_weight : settings.teaching_weight),
+    compliance: Number(isSession12 ? settings.final_compliance_weight : settings.compliance_weight),
+    project: Number(isSession12 ? settings.final_project_weight : settings.project_weight),
+  } : { teaching: 0, compliance: 0, project: 0 };
+
+  async function saveReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!review || !reviewId || !settings) return;
-    if (!review.tutor_id) {
-      setError('Tutor is required.');
-      return;
-    }
-
     setSaving(true);
     setError('');
+
     try {
-      const sectionTitle = review.evaluation_mode === 'session_12' ? 'Final Project Evaluation' : 'Project Evaluation Quality';
       const { error: reviewError } = await supabase.from('reviews').update({
         tutor_id: review.tutor_id,
         project_id: review.project_id || null,
         cycle_id: review.cycle_id || null,
         evaluation_mode: review.evaluation_mode,
-        project_section_title: sectionTitle,
+        project_section_title: isSession12 ? 'Final Project Evaluation' : 'Project Evaluation Quality',
         project_section_weight_snapshot: weights.project,
         project_weight_snapshot: weights.project,
         session_date: review.session_date || null,
@@ -303,10 +196,10 @@ export function EditReviewPage() {
         session_topic: review.session_topic || null,
         session_type: review.session_type || null,
         external_session_id: review.external_session_id || null,
-        students_present: review.students_present,
+        students_present: review.students_present === '' ? null : review.students_present,
         age_level: review.age_level || null,
-        observation_scope: review.observation_scope,
-        observation_minutes: review.observation_minutes,
+        observation_scope: review.observation_scope || 'full_session',
+        observation_minutes: review.observation_minutes === '' ? null : review.observation_minutes,
         environment_readiness: review.environment_readiness || null,
         intended_learning_outcome: review.intended_learning_outcome || null,
         external_school_cause: review.external_school_cause || null,
@@ -319,9 +212,9 @@ export function EditReviewPage() {
       const teachingBase = Number(settings.teaching_weight) || 1;
       const teachingScale = weights.teaching / teachingBase;
       const complianceItemWeight = complianceCriteria.length ? weights.compliance / complianceCriteria.length : 0;
-      const scoreRows: Record<string, unknown>[] = [];
+      const scoreRows: any[] = [];
 
-      teachingCriteria.forEach((criterion) => {
+      teachingCriteria.forEach((criterion: any) => {
         const answer = answers[criterion.id];
         if (!answer || (answer.observed && !answer.score)) return;
         scoreRows.push({
@@ -340,7 +233,7 @@ export function EditReviewPage() {
         });
       });
 
-      complianceCriteria.forEach((criterion) => {
+      complianceCriteria.forEach((criterion: any) => {
         const answer = answers[criterion.id];
         if (!answer?.compliance) return;
         const result = answer.compliance;
@@ -368,10 +261,11 @@ export function EditReviewPage() {
       const { error: clearProjectError } = await supabase.from('review_project_evaluations').delete().eq('review_id', reviewId);
       if (clearProjectError) throw clearProjectError;
 
-      const projectRows = selectedProjectMetrics.flatMap((metric) => {
+      const projectRows: any[] = [];
+      selectedProjectMetrics.forEach((metric: any) => {
         const answer = projectAnswers[metric.id];
-        if (!answer || (answer.observed && !answer.score)) return [];
-        return [{
+        if (!answer || (answer.observed && !answer.score)) return;
+        projectRows.push({
           review_id: reviewId,
           metric_id: metric.id,
           numeric_score: answer.observed ? Number(answer.score) : null,
@@ -379,7 +273,7 @@ export function EditReviewPage() {
           evidence: answer.evidence.trim() || null,
           timestamp_seconds: timestampToSeconds(answer.timestamp),
           weight_snapshot: (Number(metric.weight_percentage) / 100) * weights.project,
-        }];
+        });
       });
       if (projectRows.length) {
         const { error: projectError } = await supabase.from('review_project_evaluations').insert(projectRows);
@@ -413,75 +307,69 @@ export function EditReviewPage() {
   if (!review) return <div className="page-stack"><div className="alert alert-error">{error || 'Review not found.'}</div><Link className="button button-secondary" to="/reviews">Back to reviews</Link></div>;
 
   return (
-    <form className="page-stack review-edit-page" onSubmit={save}>
+    <form className="page-stack review-edit-page" onSubmit={saveReview}>
       <header className="page-header sticky-header">
         <div>
           <p className="eyebrow">Review management</p>
           <h1>Edit review</h1>
-          <p>Update the evaluation context, scores, Section 3, compliance, and feedback.</p>
-          <div className="evaluation-weight-chips"><span>Teaching {weights.teaching}%</span><span>{review.evaluation_mode === 'session_12' ? 'Final Project Evaluation' : 'Project Evaluation Quality'} {weights.project}%</span><span>Compliance {weights.compliance}%</span></div>
+          <p>Update context, Teaching, Section 3, Compliance, and feedback.</p>
+          <div className="evaluation-weight-chips"><span>Teaching {weights.teaching}%</span><span>{isSession12 ? 'Final Project Evaluation' : 'Project Evaluation Quality'} {weights.project}%</span><span>Compliance {weights.compliance}%</span></div>
         </div>
         <div className="review-edit-header-actions"><Link className="people-secondary-button" to={`/reviews?review=${review.id}`}>Cancel</Link><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div>
       </header>
 
-      {review.status === 'published' && <div className="alert alert-error review-edit-warning"><strong>Published review</strong><span>Saved changes will become visible to the tutor immediately.</span></div>}
+      {review.status === 'published' && <div className="alert alert-error review-edit-warning"><strong>Published review</strong><span>Saved changes become visible to the tutor immediately.</span></div>}
       {error && <div className="alert alert-error">{error}</div>}
 
       <section className="panel form-section">
-        <div className="panel-heading"><div><p className="eyebrow">Review context</p><h2>Session & evaluator context</h2></div></div>
+        <div className="panel-heading"><div><p className="eyebrow">Review context</p><h2>Session context</h2></div></div>
         <div className="form-grid">
-          <label>Tutor *<select required value={review.tutor_id} onChange={(event) => setReview({ ...review, tutor_id: event.target.value })}>{tutors.map((tutor) => <option key={tutor.id} value={tutor.id}>{tutor.employee_code} — {tutor.full_name}</option>)}</select></label>
-          <label>Evaluation type<select value={review.evaluation_mode} onChange={(event) => setReview({ ...review, evaluation_mode: event.target.value as EvaluationMode })}><option value="normal_session">Normal Session</option><option value="session_12">Session 12 – Final Project</option></select></label>
-          <label>Cycle<select value={review.cycle_id ?? ''} onChange={(event) => setReview({ ...review, cycle_id: event.target.value || null })}><option value="">Auto / no cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.name}{cycle.is_default ? ' · Default' : ''}</option>)}</select></label>
-          <label>Org.<select value={review.project_id ?? ''} onChange={(event) => setReview({ ...review, project_id: event.target.value || null })}><option value="">No Org.</option>{orgs.map((org) => <option key={org.id} value={org.id}>{org.name}{!org.is_active ? ' · Inactive' : ''}</option>)}</select></label>
-          <label>Session date<input type="date" value={review.session_date ?? ''} onChange={(event) => setReview({ ...review, session_date: event.target.value || null })} /></label>
-          <label>School / branch<input value={review.school_branch ?? ''} onChange={(event) => setReview({ ...review, school_branch: event.target.value })} /></label>
-          <label>Course / track<input value={review.course_track ?? ''} onChange={(event) => setReview({ ...review, course_track: event.target.value })} /></label>
-          <label>Session topic<input value={review.session_topic ?? ''} onChange={(event) => setReview({ ...review, session_topic: event.target.value })} /></label>
-          <label>Session format<select value={review.session_type ?? ''} onChange={(event) => setReview({ ...review, session_type: event.target.value || null })}><option value="">Not specified</option><option value="group">Group</option><option value="one_to_one">One-to-one</option></select></label>
-          <label>Session ID<input value={review.external_session_id ?? ''} onChange={(event) => setReview({ ...review, external_session_id: event.target.value })} /></label>
-          <label>Students present<input type="number" min="0" value={review.students_present ?? ''} onChange={(event) => setReview({ ...review, students_present: event.target.value ? Number(event.target.value) : null })} /></label>
-          <label>Age / level<input value={review.age_level ?? ''} onChange={(event) => setReview({ ...review, age_level: event.target.value })} /></label>
-          <label>Observation scope<select value={review.observation_scope} onChange={(event) => setReview({ ...review, observation_scope: event.target.value })}><option value="full_session">Full session</option><option value="partial_session">Partial session</option></select></label>
-          <label>Observed minutes<input type="number" min="1" value={review.observation_minutes ?? ''} onChange={(event) => setReview({ ...review, observation_minutes: event.target.value ? Number(event.target.value) : null })} /></label>
-          <label>Learning outcome<select value={review.learning_outcome_status} onChange={(event) => setReview({ ...review, learning_outcome_status: event.target.value })}><option value="achieved">Achieved</option><option value="partially_achieved">Partially achieved</option><option value="not_achieved">Not achieved</option><option value="not_observed">Not observed</option></select></label>
-          <label>Follow-up status<select value={review.follow_up_status} onChange={(event) => setReview({ ...review, follow_up_status: event.target.value })}><option value="none">None</option><option value="routine">Routine</option><option value="required">Required</option><option value="urgent">Urgent</option></select></label>
-          <label className="full-width">Environment readiness<input value={review.environment_readiness ?? ''} onChange={(event) => setReview({ ...review, environment_readiness: event.target.value })} /></label>
-          <label className="full-width">Intended learning outcome<textarea rows={2} value={review.intended_learning_outcome ?? ''} onChange={(event) => setReview({ ...review, intended_learning_outcome: event.target.value })} /></label>
-          <label className="full-width">External / school cause<textarea rows={2} value={review.external_school_cause ?? ''} onChange={(event) => setReview({ ...review, external_school_cause: event.target.value })} /></label>
-          <label className="full-width">Context details<textarea rows={2} value={review.context_details ?? ''} onChange={(event) => setReview({ ...review, context_details: event.target.value })} /></label>
+          <label>Tutor *<select required value={review.tutor_id ?? ''} onChange={(event) => setReviewField('tutor_id', event.target.value)}>{tutors.map((tutor) => <option key={tutor.id} value={tutor.id}>{tutor.employee_code} — {tutor.full_name}</option>)}</select></label>
+          <label>Evaluation type<select value={review.evaluation_mode ?? 'normal_session'} onChange={(event) => setReviewField('evaluation_mode', event.target.value)}><option value="normal_session">Normal Session</option><option value="session_12">Session 12 – Final Project</option></select></label>
+          <label>Cycle<select value={review.cycle_id ?? ''} onChange={(event) => setReviewField('cycle_id', event.target.value || null)}><option value="">Auto / no cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.name}{cycle.is_default ? ' · Default' : ''}</option>)}</select></label>
+          <label>Org.<select value={review.project_id ?? ''} onChange={(event) => setReviewField('project_id', event.target.value || null)}><option value="">No Org.</option>{orgs.map((org) => <option key={org.id} value={org.id}>{org.name}{!org.is_active ? ' · Inactive' : ''}</option>)}</select></label>
+          <label>Session date<input type="date" value={review.session_date ?? ''} onChange={(event) => setReviewField('session_date', event.target.value || null)} /></label>
+          <label>School / branch<input value={review.school_branch ?? ''} onChange={(event) => setReviewField('school_branch', event.target.value)} /></label>
+          <label>Course / track<input value={review.course_track ?? ''} onChange={(event) => setReviewField('course_track', event.target.value)} /></label>
+          <label>Session topic<input value={review.session_topic ?? ''} onChange={(event) => setReviewField('session_topic', event.target.value)} /></label>
+          <label>Session format<select value={review.session_type ?? ''} onChange={(event) => setReviewField('session_type', event.target.value || null)}><option value="">Not specified</option><option value="group">Group</option><option value="one_to_one">One-to-one</option></select></label>
+          <label>Session ID<input value={review.external_session_id ?? ''} onChange={(event) => setReviewField('external_session_id', event.target.value)} /></label>
+          <label>Students present<input type="number" min="0" value={review.students_present ?? ''} onChange={(event) => setReviewField('students_present', event.target.value ? Number(event.target.value) : null)} /></label>
+          <label>Age / level<input value={review.age_level ?? ''} onChange={(event) => setReviewField('age_level', event.target.value)} /></label>
+          <label>Observation scope<select value={review.observation_scope ?? 'full_session'} onChange={(event) => setReviewField('observation_scope', event.target.value)}><option value="full_session">Full session</option><option value="partial_session">Partial session</option></select></label>
+          <label>Observed minutes<input type="number" min="1" value={review.observation_minutes ?? ''} onChange={(event) => setReviewField('observation_minutes', event.target.value ? Number(event.target.value) : null)} /></label>
+          <label>Learning outcome<select value={review.learning_outcome_status ?? 'not_observed'} onChange={(event) => setReviewField('learning_outcome_status', event.target.value)}><option value="achieved">Achieved</option><option value="partially_achieved">Partially achieved</option><option value="not_achieved">Not achieved</option><option value="not_observed">Not observed</option></select></label>
+          <label>Follow-up status<select value={review.follow_up_status ?? 'none'} onChange={(event) => setReviewField('follow_up_status', event.target.value)}><option value="none">None</option><option value="routine">Routine</option><option value="required">Required</option><option value="urgent">Urgent</option></select></label>
+          <label className="full-width">Environment readiness<input value={review.environment_readiness ?? ''} onChange={(event) => setReviewField('environment_readiness', event.target.value)} /></label>
+          <label className="full-width">Intended learning outcome<textarea rows={2} value={review.intended_learning_outcome ?? ''} onChange={(event) => setReviewField('intended_learning_outcome', event.target.value)} /></label>
+          <label className="full-width">External / school cause<textarea rows={2} value={review.external_school_cause ?? ''} onChange={(event) => setReviewField('external_school_cause', event.target.value)} /></label>
+          <label className="full-width">Context details<textarea rows={2} value={review.context_details ?? ''} onChange={(event) => setReviewField('context_details', event.target.value)} /></label>
         </div>
       </section>
 
       <section className="panel form-section">
-        <div className="panel-heading"><div><p className="eyebrow">Teaching · {weights.teaching}%</p><h2>Teaching Quality</h2><p>Edit the original rating and evidence.</p></div></div>
-        <div className="review-edit-metric-list">
-          {teachingCriteria.map((criterion) => {
-            const answer = answers[criterion.id] ?? { score: '', observed: true, compliance: '', evidence: '', timestamp: '', severityReason: '', externalDetails: '' };
-            return <article className="review-edit-metric" key={criterion.id}><div><span className="criterion-code">{criterion.code}</span><h3>{criterion.title}</h3><p>{criterion.description}</p></div><div className="review-edit-controls"><label>Score<select value={answer.observed ? answer.score : ''} disabled={!answer.observed} onChange={(event) => updateAnswer(criterion.id, { score: event.target.value })}><option value="">Not scored</option>{[1,2,3,4,5].map((score) => <option key={score} value={score}>{score} / 5</option>)}</select></label><label className="checkbox-row"><input type="checkbox" checked={!answer.observed} onChange={(event) => updateAnswer(criterion.id, { observed: !event.target.checked, score: '' })} />Not observed</label><label>Time<input placeholder="12:35" value={answer.timestamp} onChange={(event) => updateAnswer(criterion.id, { timestamp: event.target.value })} /></label><label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateAnswer(criterion.id, { evidence: event.target.value })} /></label></div></article>;
-          })}
-        </div>
+        <div className="panel-heading"><div><p className="eyebrow">Teaching · {weights.teaching}%</p><h2>Teaching Quality</h2></div></div>
+        <div className="review-edit-metric-list">{teachingCriteria.map((criterion) => {
+          const answer = answers[criterion.id] ?? emptyAnswer;
+          return <article className="review-edit-metric" key={criterion.id}><div><span className="criterion-code">{criterion.code}</span><h3>{criterion.title}</h3><p>{criterion.description}</p></div><div className="review-edit-controls"><label>Score<select value={answer.observed ? answer.score : ''} disabled={!answer.observed} onChange={(event) => updateAnswer(criterion.id, { score: event.target.value })}><option value="">Not scored</option>{[1,2,3,4,5].map((score) => <option key={score} value={score}>{score} / 5</option>)}</select></label><label className="checkbox-row"><input type="checkbox" checked={!answer.observed} onChange={(event) => updateAnswer(criterion.id, { observed: !event.target.checked, score: '' })} />Not observed</label><label>Time<input value={answer.timestamp} placeholder="12:35" onChange={(event) => updateAnswer(criterion.id, { timestamp: event.target.value })} /></label><label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateAnswer(criterion.id, { evidence: event.target.value })} /></label></div></article>;
+        })}</div>
       </section>
 
       <section className="panel form-section">
-        <div className="panel-heading"><div><p className="eyebrow">Section 3 · {weights.project}%</p><h2>{review.evaluation_mode === 'session_12' ? 'Final Project Evaluation' : 'Project Evaluation Quality'}</h2><p>The rubric changes automatically with the evaluation type.</p></div></div>
-        <div className="review-edit-metric-list">
-          {selectedProjectMetrics.map((metric) => {
-            const answer = projectAnswers[metric.id] ?? { score: '', observed: true, compliance: '', evidence: '', timestamp: '', severityReason: '', externalDetails: '' };
-            return <article className="review-edit-metric" key={metric.id}><div><span className="criterion-code">{metric.code}</span><h3>{metric.title} · {metric.weight_percentage}%</h3><p>{metric.description}</p></div><div className="review-edit-controls"><label>Score<select value={answer.observed ? answer.score : ''} disabled={!answer.observed} onChange={(event) => updateProjectAnswer(metric.id, { score: event.target.value })}><option value="">Not scored</option>{[1,2,3,4,5].map((score) => <option key={score} value={score}>{score} / 5</option>)}</select></label><label className="checkbox-row"><input type="checkbox" checked={!answer.observed} onChange={(event) => updateProjectAnswer(metric.id, { observed: !event.target.checked, score: '' })} />Not observed</label><label>Time<input placeholder="12:35" value={answer.timestamp} onChange={(event) => updateProjectAnswer(metric.id, { timestamp: event.target.value })} /></label><label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateProjectAnswer(metric.id, { evidence: event.target.value })} /></label></div></article>;
-          })}
-        </div>
+        <div className="panel-heading"><div><p className="eyebrow">Section 3 · {weights.project}%</p><h2>{isSession12 ? 'Final Project Evaluation' : 'Project Evaluation Quality'}</h2></div></div>
+        <div className="review-edit-metric-list">{selectedProjectMetrics.map((metric) => {
+          const answer = projectAnswers[metric.id] ?? emptyAnswer;
+          return <article className="review-edit-metric" key={metric.id}><div><span className="criterion-code">{metric.code}</span><h3>{metric.title} · {metric.weight_percentage}%</h3><p>{metric.description}</p></div><div className="review-edit-controls"><label>Score<select value={answer.observed ? answer.score : ''} disabled={!answer.observed} onChange={(event) => updateProjectAnswer(metric.id, { score: event.target.value })}><option value="">Not scored</option>{[1,2,3,4,5].map((score) => <option key={score} value={score}>{score} / 5</option>)}</select></label><label className="checkbox-row"><input type="checkbox" checked={!answer.observed} onChange={(event) => updateProjectAnswer(metric.id, { observed: !event.target.checked, score: '' })} />Not observed</label><label>Time<input value={answer.timestamp} placeholder="12:35" onChange={(event) => updateProjectAnswer(metric.id, { timestamp: event.target.value })} /></label><label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateProjectAnswer(metric.id, { evidence: event.target.value })} /></label></div></article>;
+        })}</div>
       </section>
 
       <section className="panel form-section">
-        <div className="panel-heading"><div><p className="eyebrow">Compliance · {weights.compliance}%</p><h2>Compliance</h2><p>Changing a Yellow or Red result updates the linked active flag automatically.</p></div></div>
-        <div className="review-edit-metric-list">
-          {complianceCriteria.map((criterion) => {
-            const answer = answers[criterion.id] ?? { score: '', observed: true, compliance: '', evidence: '', timestamp: '', severityReason: '', externalDetails: '' };
-            const needsReason = ['coaching_note', 'yellow_flag', 'red_flag'].includes(answer.compliance);
-            return <article className="review-edit-metric" key={criterion.id}><div><span className="criterion-code">{criterion.code}</span><h3>{criterion.title}</h3><p>{criterion.description}</p></div><div className="review-edit-controls"><label>Result<select value={answer.compliance} onChange={(event) => updateAnswer(criterion.id, { compliance: event.target.value })}><option value="">Not recorded</option>{complianceOptions.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>Time<input placeholder="12:35" value={answer.timestamp} onChange={(event) => updateAnswer(criterion.id, { timestamp: event.target.value })} /></label>{needsReason && <label className="full-width">Severity rationale<textarea rows={2} value={answer.severityReason} onChange={(event) => updateAnswer(criterion.id, { severityReason: event.target.value })} /></label>}{answer.compliance === 'external_cause' && <label className="full-width">External cause details<textarea rows={2} value={answer.externalDetails} onChange={(event) => updateAnswer(criterion.id, { externalDetails: event.target.value })} /></label>}<label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateAnswer(criterion.id, { evidence: event.target.value })} /></label></div></article>;
-          })}
-        </div>
+        <div className="panel-heading"><div><p className="eyebrow">Compliance · {weights.compliance}%</p><h2>Compliance</h2></div></div>
+        <div className="review-edit-metric-list">{complianceCriteria.map((criterion) => {
+          const answer = answers[criterion.id] ?? emptyAnswer;
+          const needsReason = ['coaching_note', 'yellow_flag', 'red_flag'].includes(answer.compliance);
+          return <article className="review-edit-metric" key={criterion.id}><div><span className="criterion-code">{criterion.code}</span><h3>{criterion.title}</h3><p>{criterion.description}</p></div><div className="review-edit-controls"><label>Result<select value={answer.compliance} onChange={(event) => updateAnswer(criterion.id, { compliance: event.target.value })}><option value="">Not recorded</option>{complianceOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>Time<input value={answer.timestamp} placeholder="12:35" onChange={(event) => updateAnswer(criterion.id, { timestamp: event.target.value })} /></label>{needsReason && <label className="full-width">Severity rationale<textarea rows={2} value={answer.severityReason} onChange={(event) => updateAnswer(criterion.id, { severityReason: event.target.value })} /></label>}{answer.compliance === 'external_cause' && <label className="full-width">External cause details<textarea rows={2} value={answer.externalDetails} onChange={(event) => updateAnswer(criterion.id, { externalDetails: event.target.value })} /></label>}<label className="full-width">Evidence<textarea rows={2} value={answer.evidence} onChange={(event) => updateAnswer(criterion.id, { evidence: event.target.value })} /></label></div></article>;
+        })}</div>
       </section>
 
       <section className="panel form-section">
