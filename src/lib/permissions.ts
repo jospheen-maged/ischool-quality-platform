@@ -5,6 +5,8 @@ export type PermissionKey =
   | 'create_evaluation'
   | 'view_reviews'
   | 'publish_reviews'
+  | 'edit_reviews'
+  | 'delete_reviews'
   | 'view_objections'
   | 'review_objections'
   | 'view_analytics'
@@ -20,6 +22,8 @@ const allPermissions: PermissionKey[] = [
   'create_evaluation',
   'view_reviews',
   'publish_reviews',
+  'edit_reviews',
+  'delete_reviews',
   'view_objections',
   'review_objections',
   'view_analytics',
@@ -39,6 +43,7 @@ export const rolePermissionDefaults: Record<UserRole, PermissionMap> = {
     create_evaluation: true,
     view_reviews: true,
     publish_reviews: true,
+    edit_reviews: true,
     view_objections: true,
     review_objections: true,
     view_analytics: true,
@@ -52,6 +57,7 @@ export const rolePermissionDefaults: Record<UserRole, PermissionMap> = {
     create_evaluation: true,
     view_reviews: true,
     publish_reviews: true,
+    edit_reviews: true,
     view_objections: true,
     review_objections: true,
     view_analytics: true,
@@ -88,18 +94,20 @@ export const permissionGroups: Array<{
       { key: 'create_evaluation', label: 'New Evaluation', description: 'Open and submit evaluation forms.' },
       { key: 'view_reviews', label: 'Reviews', description: 'See review records allowed by the user role.' },
       { key: 'view_objections', label: 'Evaluation Re-consideration', description: 'See Evaluation Re-consideration cases allowed by the user role.' },
-      { key: 'view_analytics', label: 'Analytics', description: 'Open leadership analytics using records visible to the role.' },
+      { key: 'view_analytics', label: 'Analytics', description: 'Open analytics using records visible to the role.' },
       { key: 'manage_tutors', label: 'Tutors', description: 'Open the tutor directory and management tools.' },
-      { key: 'manage_model_settings', label: 'Model Settings', description: 'Manage metrics, compliance items, weights, and projects.' },
+      { key: 'manage_model_settings', label: 'Model Settings', description: 'Manage metrics, compliance items, weights, Organizations, and cycles.' },
       { key: 'manage_people', label: 'People & Access', description: 'Create accounts and update roles.' },
       { key: 'manage_access', label: 'Access Control', description: 'Change granular permissions for other people.' },
     ],
   },
   {
     title: 'Review actions',
-    description: 'Control sensitive actions inside visible pages.',
+    description: 'Control sensitive actions inside visible review records.',
     permissions: [
       { key: 'publish_reviews', label: 'Publish to Tutor', description: 'Publish eligible reviews. QC can publish only reviews they created.' },
+      { key: 'edit_reviews', label: 'Edit Reviews', description: 'Edit review context, scores, Section 3, and feedback. QC can edit only reviews they created when enabled.' },
+      { key: 'delete_reviews', label: 'Delete Reviews', description: 'Permanently delete a review and its linked evaluation data. QC can delete only reviews they created when enabled.' },
       { key: 'review_objections', label: 'Review Re-consideration Cases', description: 'Take decisions on Evaluation Re-consideration cases allowed by the role.' },
     ],
   },
