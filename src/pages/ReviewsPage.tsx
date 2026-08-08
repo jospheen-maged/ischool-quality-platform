@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { hasPermission } from '../lib/permissions';
 import { supabase } from '../lib/supabase';
+import '../review-management.css';
 
 type ReviewRow = {
   id: string;
@@ -82,6 +83,7 @@ function formatDate(value: string | null) {
 export function ReviewsPage() {
   const { profile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedReviewId = searchParams.get('review');
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
@@ -92,6 +94,7 @@ export function ReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const notice = (location.state as { notice?: string } | null)?.notice;
@@ -166,6 +169,18 @@ export function ReviewsPage() {
     return ['super_admin', 'admin', 'qtl'].includes(profile.role);
   }
 
+  function canEditReview(review: ReviewRow) {
+    if (!profile || !hasPermission(profile, 'edit_reviews')) return false;
+    if (profile.role === 'qc') return review.evaluator_id === profile.id;
+    return ['super_admin', 'admin', 'qtl'].includes(profile.role);
+  }
+
+  function canDeleteReview(review: ReviewRow) {
+    if (!profile || !hasPermission(profile, 'delete_reviews')) return false;
+    if (profile.role === 'qc') return review.evaluator_id === profile.id;
+    return ['super_admin', 'admin', 'qtl'].includes(profile.role);
+  }
+
   async function publishReview(reviewId: string) {
     setPublishingId(reviewId);
     setError('');
@@ -184,6 +199,34 @@ export function ReviewsPage() {
       setError(caught instanceof Error ? caught.message : 'Unable to publish the review.');
     } finally {
       setPublishingId(null);
+    }
+  }
+
+  async function deleteReview(review: ReviewRow) {
+    const label = review.session_topic || review.project?.name || formatDate(review.session_date);
+    const confirmed = window.confirm(
+      `Delete "${label}" permanently?\n\nThis will also delete its scores, Section 3 evaluation, feedback, flags, and Evaluation Re-consideration cases. This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(review.id);
+    setError('');
+    setSuccess('');
+    try {
+      const { error: deleteError } = await supabase.rpc('delete_review_secure', { p_review_id: review.id });
+      if (deleteError) throw deleteError;
+
+      setReviews((items) => items.filter((item) => item.id !== review.id));
+      if (selectedReviewId === review.id) {
+        setSelectedReview(null);
+        navigate('/reviews', { replace: true, state: { notice: 'Review deleted permanently.' } });
+      } else {
+        setSuccess('Review deleted permanently.');
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to delete the review.');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -215,6 +258,7 @@ export function ReviewsPage() {
                   <p>{formatDate(selectedReview.session_date)} · {selectedReview.course_track || 'No course track'} · {selectedReview.school_branch || 'No branch'}</p>
                 </div>
                 <div className="review-detail-actions">
+                  {canEditReview(selectedReview) && <Link className="people-secondary-button review-edit-link" to={`/reviews/edit?review=${selectedReview.id}`}>Edit review</Link>}
                   {canPublishReview(selectedReview) && (
                     <button
                       className="button button-primary"
@@ -225,7 +269,8 @@ export function ReviewsPage() {
                       {publishingId === selectedReview.id ? 'Publishing…' : 'Publish to tutor'}
                     </button>
                   )}
-                  {isTutor && selectedReview.status === 'published' && <Link className="button button-primary" to={`/objections?review=${selectedReview.id}`}>Raise objection</Link>}
+                  {canDeleteReview(selectedReview) && <button className="people-secondary-button review-delete-button" type="button" disabled={deletingId === selectedReview.id} onClick={() => void deleteReview(selectedReview)}>{deletingId === selectedReview.id ? 'Deleting…' : 'Delete review'}</button>}
+                  {isTutor && selectedReview.status === 'published' && <Link className="button button-primary" to={`/objections?review=${selectedReview.id}`}>Evaluation Re-consideration</Link>}
                   <Link className="people-secondary-button" to="/reviews">Close details</Link>
                 </div>
               </div>
@@ -234,7 +279,7 @@ export function ReviewsPage() {
                 <article><small>Overall score</small><strong>{selectedReview.score_percentage !== null ? `${selectedReview.score_percentage}%` : '—'}</strong></article>
                 <article><small>Teaching</small><strong>{selectedReview.teaching_percentage !== null ? `${selectedReview.teaching_percentage}%` : '—'}</strong></article>
                 <article><small>Compliance score</small><strong>{selectedReview.compliance_percentage !== null ? `${selectedReview.compliance_percentage}%` : '—'}</strong><span>{formatStatus(selectedReview.compliance_status)}</span></article>
-                <article><small>Project</small><strong>{selectedReview.project_percentage !== null ? `${selectedReview.project_percentage}%` : '—'}</strong><span>{selectedReview.project?.name || 'Not selected'}</span></article>
+                <article><small>Section 3</small><strong>{selectedReview.project_percentage !== null ? `${selectedReview.project_percentage}%` : '—'}</strong><span>{selectedReview.project?.name || 'No Org. selected'}</span></article>
               </div>
 
               <div className="review-detail-layout">
@@ -301,13 +346,11 @@ export function ReviewsPage() {
                     <td><span className={`status-badge status-${review.status}`}>{formatStatus(review.status)}</span></td>
                     <td>
                       <div className="review-row-actions">
-                        <Link to={`/reviews?review=${review.id}`}>View review</Link>
-                        {canPublishReview(review) && (
-                          <button type="button" disabled={publishingId === review.id} onClick={() => void publishReview(review.id)}>
-                            {publishingId === review.id ? 'Publishing…' : 'Publish'}
-                          </button>
-                        )}
-                        {isTutor && review.status === 'published' && <Link to={`/objections?review=${review.id}`}>Object</Link>}
+                        <Link to={`/reviews?review=${review.id}`}>View</Link>
+                        {canEditReview(review) && <Link className="review-edit-link" to={`/reviews/edit?review=${review.id}`}>Edit</Link>}
+                        {canPublishReview(review) && <button type="button" disabled={publishingId === review.id} onClick={() => void publishReview(review.id)}>{publishingId === review.id ? 'Publishing…' : 'Publish'}</button>}
+                        {canDeleteReview(review) && <button className="review-delete-link" type="button" disabled={deletingId === review.id} onClick={() => void deleteReview(review)}>{deletingId === review.id ? 'Deleting…' : 'Delete'}</button>}
+                        {isTutor && review.status === 'published' && <Link to={`/objections?review=${review.id}`}>Re-consider</Link>}
                       </div>
                     </td>
                   </tr>
