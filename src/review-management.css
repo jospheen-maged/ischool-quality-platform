@@ -82,6 +82,20 @@
   font-weight: 760;
 }
 
+.review-feedback-points {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.45rem 0 0;
+  padding-left: 1.15rem;
+  color: #5f7387;
+}
+
+.review-feedback-points li {
+  padding-left: 0.15rem;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
 @media (max-width: 900px) {
   .review-edit-metric { grid-template-columns: 1fr; }
 }
