@@ -8,6 +8,7 @@ const AccessControlPage = lazy(() => import('./pages/AccessControlPage').then((m
 const AccessPage = lazy(() => import('./pages/AccessPage').then((module) => ({ default: module.AccessPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const EditReviewPage = lazy(() => import('./pages/EditReviewPage').then((module) => ({ default: module.EditReviewPage })));
 const EvaluationReconsiderationPage = lazy(() => import('./pages/EvaluationReconsiderationPage').then((module) => ({ default: module.EvaluationReconsiderationPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const ModelSettingsPage = lazy(() => import('./pages/ModelSettingsPage').then((module) => ({ default: module.ModelSettingsPage })));
@@ -16,7 +17,7 @@ const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/reviews/edit', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
 
 function PageLoader() {
   return (
@@ -46,6 +47,13 @@ function ApplicationRoutes() {
     page = (
       <ProtectedRoute requiredPermission="view_reviews">
         <ReviewsPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/reviews/edit') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="edit_reviews">
+        <EditReviewPage />
       </ProtectedRoute>
     );
   }
