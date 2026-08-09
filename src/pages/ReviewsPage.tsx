@@ -80,6 +80,25 @@ function formatDate(value: string | null) {
   return value ? new Date(`${value}T00:00:00`).toLocaleDateString() : 'Date not entered';
 }
 
+function feedbackPoints(value: string | null | undefined) {
+  if (!value?.trim()) return [];
+  return value
+    .replace(/\r/g, '')
+    .split(/\n+|[•●▪◦]+\s*|;\s+|(?<=[.!?])\s+(?=[A-Z0-9])/)
+    .map((item) => item.replace(/^\s*[-–—*]+\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function FeedbackPointList({ value }: { value: string | null | undefined }) {
+  const points = feedbackPoints(value);
+  if (points.length === 0) return <p>Not recorded.</p>;
+  return (
+    <ul className="review-feedback-points">
+      {points.map((point, index) => <li key={`${index}-${point}`}>{point}</li>)}
+    </ul>
+  );
+}
+
 export function ReviewsPage() {
   const { profile } = useAuth();
   const location = useLocation();
@@ -305,8 +324,8 @@ export function ReviewsPage() {
                 <div className="review-feedback-stack">
                   <section className="review-feedback-card">
                     <span className="review-detail-kicker">Tutor feedback</span>
-                    <div><small>Observed strength</small><p>{feedback?.observed_strength || 'Not recorded.'}</p></div>
-                    <div><small>Development priority</small><p>{feedback?.development_priority || 'Not recorded.'}</p></div>
+                    <div><small>Strengths</small><FeedbackPointList value={feedback?.observed_strength} /></div>
+                    <div><small>Development Areas</small><FeedbackPointList value={feedback?.development_priority} /></div>
                     <div><small>Student impact</small><p>{feedback?.student_impact || 'Not recorded.'}</p></div>
                     <div><small>Required action</small><p>{feedback?.required_action || 'Not recorded.'}</p></div>
                     {feedback?.follow_up_plan && <div><small>Follow-up</small><p>{feedback.follow_up_plan}{feedback.follow_up_date ? ` · ${new Date(feedback.follow_up_date).toLocaleDateString()}` : ''}</p></div>}
