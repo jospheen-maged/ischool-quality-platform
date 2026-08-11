@@ -2,7 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/invite-user",
+      "destination": "https://mxfeyumgdlmiplognpry.supabase.co/functions/v1/invite-user"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
