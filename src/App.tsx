@@ -11,7 +11,6 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) =
 const EditReviewPage = lazy(() => import('./pages/EditReviewPage').then((module) => ({ default: module.EditReviewPage })));
 const EvaluationReconsiderationPage = lazy(() => import('./pages/EvaluationReconsiderationPage').then((module) => ({ default: module.EvaluationReconsiderationPage })));
 const FinalProjectAuditPage = lazy(() => import('./pages/FinalProjectAuditPage').then((module) => ({ default: module.FinalProjectAuditPage })));
-const ProjectEvaluationAuditPage = lazy(() => import('./pages/ProjectEvaluationAuditPage').then((module) => ({ default: module.ProjectEvaluationAuditPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const ModelSettingsPage = lazy(() => import('./pages/ModelSettingsPage').then((module) => ({ default: module.ModelSettingsPage })));
 const NormalEvaluationPage = lazy(() => import('./pages/NormalEvaluationPage').then((module) => ({ default: module.NormalEvaluationPage })));
@@ -19,7 +18,7 @@ const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/reviews/edit', '/objections', '/evaluations/new', '/project-evaluation-audit', '/final-project-audit', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/reviews/edit', '/objections', '/evaluations/new', '/final-project-audit', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
 
 function PageLoader() {
   return (
@@ -70,13 +69,6 @@ function ApplicationRoutes() {
     page = (
       <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="create_evaluation">
         <NormalEvaluationPage />
-      </ProtectedRoute>
-    );
-  }
-  if (pathname === '/project-evaluation-audit') {
-    page = (
-      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="create_evaluation">
-        <ProjectEvaluationAuditPage />
       </ProtectedRoute>
     );
   }
