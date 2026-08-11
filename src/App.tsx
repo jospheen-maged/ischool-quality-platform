@@ -10,14 +10,15 @@ const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) =
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const EditReviewPage = lazy(() => import('./pages/EditReviewPage').then((module) => ({ default: module.EditReviewPage })));
 const EvaluationReconsiderationPage = lazy(() => import('./pages/EvaluationReconsiderationPage').then((module) => ({ default: module.EvaluationReconsiderationPage })));
+const FinalProjectAuditPage = lazy(() => import('./pages/FinalProjectAuditPage').then((module) => ({ default: module.FinalProjectAuditPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const ModelSettingsPage = lazy(() => import('./pages/ModelSettingsPage').then((module) => ({ default: module.ModelSettingsPage })));
-const NewEvaluationPage = lazy(() => import('./pages/NewEvaluationPage').then((module) => ({ default: module.NewEvaluationPage })));
+const NormalEvaluationPage = lazy(() => import('./pages/NormalEvaluationPage').then((module) => ({ default: module.NormalEvaluationPage })));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage').then((module) => ({ default: module.SetPasswordPage })));
 const TutorsPage = lazy(() => import('./pages/TutorsPage').then((module) => ({ default: module.TutorsPage })));
 
-const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/reviews/edit', '/objections', '/evaluations/new', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
+const knownPaths = new Set(['/', '/login', '/set-password', '/reviews', '/reviews/edit', '/objections', '/evaluations/new', '/final-project-audit', '/analytics', '/tutors', '/access', '/access-control', '/model-settings']);
 
 function PageLoader() {
   return (
@@ -67,7 +68,14 @@ function ApplicationRoutes() {
   if (pathname === '/evaluations/new') {
     page = (
       <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="create_evaluation">
-        <NewEvaluationPage />
+        <NormalEvaluationPage />
+      </ProtectedRoute>
+    );
+  }
+  if (pathname === '/final-project-audit') {
+    page = (
+      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'qtl', 'qc']} requiredPermission="create_evaluation">
+        <FinalProjectAuditPage />
       </ProtectedRoute>
     );
   }

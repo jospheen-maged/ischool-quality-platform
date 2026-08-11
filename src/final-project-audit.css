@@ -1,0 +1,262 @@
+.final-project-audit-page { gap: 1rem; }
+
+.final-project-audit-header {
+  align-items: stretch;
+}
+
+.project-audit-score-card {
+  min-width: 230px;
+  border: 1px solid #dce7f2;
+  border-radius: 18px;
+  padding: 1rem 1.15rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  display: grid;
+  gap: 0.3rem;
+  align-content: center;
+}
+
+.project-audit-score-card small,
+.project-audit-summary small {
+  color: #6c8095;
+  font-size: 0.68rem;
+  font-weight: 760;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.project-audit-score-card strong {
+  color: #183650;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.project-audit-score-card span,
+.project-audit-summary span {
+  color: #74879a;
+  font-size: 0.7rem;
+}
+
+.version-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.version-status-grid button {
+  text-align: left;
+  border: 1px solid #dbe5ef;
+  border-radius: 14px;
+  background: #fff;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.version-status-grid button strong {
+  color: #1d3b56;
+  font-size: 0.78rem;
+}
+
+.version-status-grid button span {
+  color: #6f8193;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.version-status-grid button.selected {
+  border-color: #5f92cb;
+  box-shadow: 0 0 0 2px rgba(54, 112, 177, 0.12);
+  background: #f6faff;
+}
+
+.project-audit-evidence-grid { margin-top: 0.8rem; }
+
+.project-checklist-groups {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.project-checklist-group {
+  border: 1px solid #e0e8f0;
+  border-radius: 16px;
+  background: #fbfdff;
+  padding: 0.95rem;
+}
+
+.project-checklist-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.project-checklist-heading > div { min-width: 0; }
+
+.project-checklist-heading span,
+.tutor-audit-metrics article > div > span {
+  display: inline-flex;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #edf5fd;
+  color: #2d659b;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.project-checklist-heading h3,
+.tutor-audit-metrics h3 {
+  margin: 0.35rem 0 0.2rem;
+  color: #1b3a55;
+  font-size: 0.82rem;
+}
+
+.project-checklist-heading p,
+.tutor-audit-metrics p {
+  margin: 0;
+  color: #738598;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.project-checklist-heading > strong {
+  color: #193b5b;
+  font-size: 1.15rem;
+}
+
+.project-checklist-items {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.project-checklist-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.4fr) minmax(130px, 0.45fr) minmax(220px, 1fr) 34px;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.project-checklist-row label {
+  display: grid;
+  gap: 0.3rem;
+  color: #48627a;
+  font-size: 0.66rem;
+  font-weight: 760;
+}
+
+.project-row-remove {
+  width: 34px;
+  height: 38px;
+  border: 1px solid #f0c5c2;
+  border-radius: 9px;
+  background: #fff7f6;
+  color: #a52a22;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.project-add-requirement { margin-top: 0.7rem; }
+
+.tutor-audit-metrics {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tutor-audit-metrics article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.32fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid #e1e9f1;
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.tutor-audit-metrics article > strong {
+  justify-self: end;
+  color: #173a5b;
+  font-size: 1.1rem;
+}
+
+.feedback-specificity-audit {
+  grid-template-columns: minmax(220px, 0.75fr) minmax(380px, 1.1fr) auto !important;
+}
+
+.feedback-checks {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.feedback-checks label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  color: #496278;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.feedback-checks input { margin-top: 0.16rem; }
+
+.project-audit-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.project-audit-summary article {
+  border: 1px solid #dfe8f0;
+  border-radius: 15px;
+  background: #fff;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-audit-summary strong {
+  color: #183a58;
+  font-size: 1.3rem;
+}
+
+.project-audit-actions {
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.project-audit-history .table-subtext { display: block; }
+
+.status-needs_verification {
+  background: #fff4df;
+  color: #8b5c14;
+}
+
+.status-completed {
+  background: #e8f7ef;
+  color: #246b47;
+}
+
+@media (max-width: 1100px) {
+  .project-checklist-row { grid-template-columns: 1fr 160px; }
+  .project-checklist-row label:nth-child(3) { grid-column: 1 / -1; }
+  .project-row-remove { grid-column: 2; grid-row: 2; justify-self: end; }
+  .feedback-specificity-audit { grid-template-columns: 1fr !important; }
+  .feedback-specificity-audit > strong { justify-self: start !important; }
+}
+
+@media (max-width: 800px) {
+  .version-status-grid,
+  .project-audit-summary { grid-template-columns: 1fr 1fr; }
+  .tutor-audit-metrics article { grid-template-columns: 1fr; }
+  .tutor-audit-metrics article > strong { justify-self: start; }
+}
+
+@media (max-width: 620px) {
+  .version-status-grid,
+  .project-audit-summary,
+  .project-checklist-row { grid-template-columns: 1fr; }
+  .project-row-remove { grid-column: auto; grid-row: auto; justify-self: start; }
+  .project-audit-actions { flex-direction: column; }
+  .project-audit-actions > * { width: 100%; }
+}
