@@ -96,12 +96,125 @@
   line-height: 1.55;
 }
 
+/* Compact review details — keeps incomplete records readable instead of creating large empty areas. */
+.review-detail-card {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.review-detail-header {
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.review-detail-header h2 {
+  margin: 0.2rem 0 0.25rem;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.review-detail-header p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6f8193;
+}
+
+.review-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.review-detail-actions > * {
+  min-height: 38px;
+  padding: 0.62rem 0.9rem !important;
+  border-radius: 10px !important;
+  font-size: 0.75rem !important;
+  font-weight: 760 !important;
+  box-shadow: none !important;
+}
+
+.composite-score-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid #e7edf3;
+  border-bottom: 1px solid #e7edf3;
+}
+
+.composite-score-grid article {
+  min-height: 88px;
+  padding: 1rem 1.15rem;
+}
+
+.composite-score-grid article small {
+  font-size: 0.68rem;
+}
+
+.composite-score-grid article strong {
+  margin-top: 0.3rem;
+  font-size: 1.2rem;
+}
+
+.review-detail-layout {
+  align-items: start;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.review-dimensions-card,
+.review-feedback-card {
+  border-radius: 14px;
+}
+
+.review-dimensions-card {
+  min-height: 0 !important;
+}
+
+.review-dimension-list:has(> .muted:only-child) {
+  min-height: 0;
+  padding: 0.9rem 1rem 1.05rem;
+}
+
+.review-dimension-list > .muted {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed #d7e1ea;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #7d8e9d;
+  font-size: 0.76rem;
+}
+
+.review-feedback-card {
+  padding: 1rem;
+}
+
+.review-feedback-card > div {
+  padding: 0.65rem 0;
+}
+
+.review-clear-state {
+  margin: 0.65rem 0 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+}
+
+@media (max-width: 1100px) {
+  .review-detail-header { flex-direction: column; }
+  .review-detail-actions { justify-content: flex-start; width: 100%; }
+  .composite-score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 900px) {
   .review-edit-metric { grid-template-columns: 1fr; }
+  .review-detail-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
   .review-edit-controls { grid-template-columns: 1fr; }
   .review-edit-header-actions { width: 100%; flex-direction: column-reverse; align-items: stretch; }
   .review-edit-header-actions > * { width: 100%; text-align: center; }
+  .review-detail-actions > * { flex: 1 1 calc(50% - 0.55rem); text-align: center; }
+  .composite-score-grid { grid-template-columns: 1fr 1fr; }
 }
