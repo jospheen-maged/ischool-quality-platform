@@ -77,6 +77,7 @@ export function AppShell({ children }: PropsWithChildren) {
         <nav className="nav-list elegant-nav" aria-label="Primary navigation">
           {showDashboard && <NavItem to="/" exact label="Dashboard" icon={icons.dashboard} />}
           {showEvaluation && <NavItem to="/evaluations/new" label="New Evaluation" icon={icons.evaluation} />}
+          {showEvaluation && <NavItem to="/project-evaluation-audit" label="Project Evaluation Audit" icon={icons.projectAudit} />}
           {showEvaluation && <NavItem to="/final-project-audit" label="Final Project Audit" icon={icons.projectAudit} />}
           {showReviews && <NavItem to="/reviews" label="Reviews" icon={icons.reviews} />}
           {showObjections && <NavItem to="/objections" label="Evaluation Re-consideration" icon={icons.objections} />}

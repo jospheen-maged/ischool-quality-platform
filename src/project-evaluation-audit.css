@@ -1,0 +1,120 @@
+.project-evaluation-audit-page { width: min(1180px, 100%); gap: 1rem; }
+
+.project-evaluation-audit-header {
+  align-items: center;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid #dfe8f1;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(25, 52, 78, 0.05);
+}
+
+.project-evaluation-audit-header h1 { margin-bottom: 0.35rem; font-size: clamp(1.65rem, 2.7vw, 2.25rem); }
+.project-evaluation-audit-header p:last-child { margin-bottom: 0; }
+
+.project-evaluation-score-card {
+  min-width: 210px;
+  display: grid;
+  gap: 0.18rem;
+  padding: 1rem 1.1rem;
+  border-radius: 17px;
+  color: #fff;
+  background: #0d4f79;
+}
+.project-evaluation-score-card small { color: #b7cbdb; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; }
+.project-evaluation-score-card strong { font-size: 1.65rem; }
+.project-evaluation-score-card span { color: #d5e2eb; font-size: 0.68rem; }
+
+.project-audit-context-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.project-audit-heading { align-items: center; }
+.project-audit-metrics { display: grid; gap: 0.75rem; padding: 0.9rem; background: #f7fafc; }
+
+.project-audit-metric {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(260px, 1.2fr);
+  gap: 0.8rem 1rem;
+  padding: 1rem;
+  border: 1px solid #e0e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.project-audit-metric-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.45rem 0.7rem; align-items: start; }
+.project-audit-metric-copy > div { display: flex; align-items: center; gap: 0.5rem; }
+.project-audit-metric-copy strong { color: #193650; font-size: 0.84rem; }
+.project-audit-metric-copy p { grid-column: 1 / -1; margin: 0; color: #74889c; font-size: 0.68rem; line-height: 1.5; }
+.project-audit-weight { padding: 0.25rem 0.45rem; border-radius: 999px; color: #0878f9; background: #eef6ff; font-size: 0.61rem; font-weight: 850; }
+
+.project-audit-rating { justify-content: flex-end; align-self: center; }
+.project-audit-guide { grid-column: 1 / -1; }
+.project-audit-evidence { grid-column: 1 / -1; }
+
+.project-audit-result-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+.project-audit-result-strip > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dfe8f1;
+  border-radius: 14px;
+  background: #fff;
+}
+.project-audit-result-strip small { color: #7a8da0; font-size: 0.62rem; font-weight: 780; }
+.project-audit-result-strip strong { color: #173550; font-size: 1.05rem; }
+.project-audit-actions { position: static; }
+.project-audit-history { margin-top: 0.2rem; }
+
+.session-header-actions { display: flex; align-items: center; gap: 0.65rem; }
+.standalone-chip { color: #6c5f21 !important; border-color: #eadfae !important; background: #fffbea !important; }
+.context-primary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+.evaluation-more-details { border-top: 1px solid #edf2f6; }
+.evaluation-more-details > summary {
+  cursor: pointer;
+  padding: 0.85rem 1.2rem;
+  color: #31536f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  list-style: none;
+}
+.evaluation-more-details > summary::-webkit-details-marker { display: none; }
+.evaluation-more-details > summary::after { content: '+'; float: right; color: #0878f9; font-size: 0.9rem; }
+.evaluation-more-details[open] > summary::after { content: '−'; }
+.evaluation-more-details[open] > .form-grid { border-top: 1px solid #edf2f6; }
+
+.evaluation-section-heading { align-items: center; }
+.section-progress { flex: 0 0 auto; padding: 0.34rem 0.55rem; border-radius: 999px; color: #506b83; background: #edf4fa; font-size: 0.62rem; font-weight: 800; }
+.compact-criteria-list { gap: 0.7rem !important; }
+.compact-criterion-card { grid-template-columns: minmax(220px, 0.75fr) minmax(280px, 1.25fr) !important; }
+.criterion-scoring-area { display: grid; gap: 0.55rem; align-content: start; }
+
+.rating-guide { grid-column: 1 / -1; border-top: 1px dashed #dfe8f1; padding-top: 0.55rem; }
+.rating-guide > summary { cursor: pointer; color: #47708f; font-size: 0.62rem; font-weight: 780; }
+.rating-guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; margin-top: 0.55rem; }
+.rating-guide-grid > div { padding: 0.6rem; border: 1px solid #e5edf4; border-radius: 10px; background: #fbfdff; }
+.rating-guide-grid strong { color: #3d5c75; font-size: 0.61rem; }
+.rating-guide-grid p { margin: 0.25rem 0 0; color: #7a8c9e; font-size: 0.61rem; line-height: 1.45; }
+
+.feedback-primary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+@media (max-width: 980px) {
+  .project-audit-context-grid,
+  .context-primary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .project-audit-metric,
+  .compact-criterion-card { grid-template-columns: 1fr !important; }
+  .project-audit-rating { justify-content: flex-start; }
+}
+
+@media (max-width: 680px) {
+  .project-evaluation-audit-header,
+  .session-header-actions { align-items: stretch; flex-direction: column; }
+  .project-evaluation-score-card { width: 100%; }
+  .project-audit-context-grid,
+  .context-primary-grid,
+  .project-audit-result-strip,
+  .feedback-primary-grid,
+  .rating-guide-grid { grid-template-columns: 1fr !important; }
+}
