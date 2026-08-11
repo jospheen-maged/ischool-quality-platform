@@ -23,6 +23,7 @@ function NavItem({ to, label, exact, icon }: NavItemProps) {
 const icons = {
   dashboard: <svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v10h-6zM4 14h6v6H4zM14 18h6v2h-6z" /></svg>,
   evaluation: <svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4h6M9 11h6M9 15h4" /></svg>,
+  projectAudit: <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M15.5 16.5 17 18l3-3" /></svg>,
   reviews: <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5" /></svg>,
   objections: <svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v5m0 3h.01" /></svg>,
   analytics: <svg viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7" /></svg>,
@@ -76,6 +77,7 @@ export function AppShell({ children }: PropsWithChildren) {
         <nav className="nav-list elegant-nav" aria-label="Primary navigation">
           {showDashboard && <NavItem to="/" exact label="Dashboard" icon={icons.dashboard} />}
           {showEvaluation && <NavItem to="/evaluations/new" label="New Evaluation" icon={icons.evaluation} />}
+          {showEvaluation && <NavItem to="/final-project-audit" label="Final Project Audit" icon={icons.projectAudit} />}
           {showReviews && <NavItem to="/reviews" label="Reviews" icon={icons.reviews} />}
           {showObjections && <NavItem to="/objections" label="Evaluation Re-consideration" icon={icons.objections} />}
           {showAnalytics && <NavItem to="/analytics" label="Analytics" icon={icons.analytics} />}
