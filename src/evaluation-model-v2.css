@@ -128,10 +128,322 @@
 .tutor-kpi-grid strong { margin-top: 0.35rem; color: #173550; font-size: 1.55rem; letter-spacing: -0.04em; }
 .tutor-kpi-grid span { margin-top: 0.35rem; color: #8a9bad; font-size: 0.61rem; }
 
+/* New Evaluation — clean audit workspace */
+.evaluation-v2-page {
+  width: min(1180px, 100%);
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+.evaluation-v2-page .evaluation-mode-picker {
+  display: none !important;
+}
+
+.evaluation-v2-page .evaluation-dynamic-header {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid #dfe8f1;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(25, 52, 78, 0.05);
+}
+
+.evaluation-v2-page .evaluation-dynamic-header > div:first-child > p:not(.eyebrow) {
+  display: none;
+}
+
+.evaluation-v2-page .evaluation-dynamic-header .eyebrow {
+  margin-bottom: 0.25rem;
+  color: #0878f9;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+}
+
+.evaluation-v2-page .evaluation-dynamic-header h1 {
+  margin: 0;
+  color: #16344f;
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.evaluation-v2-page .evaluation-weight-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.evaluation-v2-page .evaluation-weight-chips span {
+  padding: 0.38rem 0.65rem;
+  border: 1px solid #dce7f1;
+  border-radius: 999px;
+  color: #47647e;
+  background: #f8fbfe;
+  font-size: 0.65rem;
+  font-weight: 760;
+}
+
+.evaluation-v2-page .score-pill {
+  min-width: 150px;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: #0d4f79;
+  box-shadow: none;
+}
+
+.evaluation-v2-page .score-pill span,
+.evaluation-v2-page .score-pill small {
+  font-size: 0.6rem;
+}
+
+.evaluation-v2-page .score-pill strong {
+  margin: 0.1rem 0;
+  font-size: 1.35rem;
+}
+
+.evaluation-v2-page .panel.form-section {
+  overflow: hidden;
+  border: 1px solid #dfe8f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(25, 52, 78, 0.035);
+}
+
+.evaluation-v2-page .panel.form-section > .panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #edf2f6;
+  background: #fbfdff;
+}
+
+.evaluation-v2-page .panel-heading .eyebrow {
+  margin: 0 0 0.2rem;
+  color: #0878f9;
+  font-size: 0.61rem;
+  letter-spacing: 0.1em;
+}
+
+.evaluation-v2-page .panel-heading h2 {
+  margin: 0;
+  color: #193650;
+  font-size: 1rem;
+  letter-spacing: -0.015em;
+}
+
+.evaluation-v2-page .panel-heading p:not(.eyebrow) {
+  margin: 0.22rem 0 0;
+  color: #7a8da0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.evaluation-v2-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+.evaluation-v2-page .form-grid label,
+.evaluation-v2-page .evidence-grid label {
+  display: grid;
+  gap: 0.35rem;
+  color: #47627b;
+  font-size: 0.65rem;
+  font-weight: 760;
+}
+
+.evaluation-v2-page .form-grid input,
+.evaluation-v2-page .form-grid select,
+.evaluation-v2-page .form-grid textarea,
+.evaluation-v2-page .evidence-grid input,
+.evaluation-v2-page .evidence-grid textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.58rem 0.68rem;
+  border: 1px solid #d7e2ec;
+  border-radius: 10px;
+  color: #1f3c56;
+  background: #fff;
+  font: inherit;
+  font-size: 0.7rem;
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.evaluation-v2-page .form-grid input:focus,
+.evaluation-v2-page .form-grid select:focus,
+.evaluation-v2-page .form-grid textarea:focus,
+.evaluation-v2-page .evidence-grid input:focus,
+.evaluation-v2-page .evidence-grid textarea:focus {
+  border-color: #4d9bf4;
+  box-shadow: 0 0 0 3px rgba(8, 120, 249, 0.08);
+}
+
+.evaluation-v2-page .form-grid textarea,
+.evaluation-v2-page .evidence-grid textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.evaluation-v2-page .criteria-list {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  background: #f7fafc;
+}
+
+.evaluation-v2-page .criterion-card {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.72fr) minmax(0, 1.28fr);
+  column-gap: 1rem;
+  row-gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e0e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.evaluation-v2-page .criterion-copy {
+  grid-column: 1;
+  align-self: start;
+}
+
+.evaluation-v2-page .criterion-copy .criterion-code {
+  display: inline-flex;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.42rem;
+  border-radius: 999px;
+  color: #0878f9;
+  background: #eef6ff;
+  font-size: 0.57rem;
+  font-weight: 800;
+}
+
+.evaluation-v2-page .criterion-copy h3 {
+  margin: 0;
+  color: #193650;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.evaluation-v2-page .criterion-copy p {
+  margin: 0.35rem 0 0;
+  color: #7b8da0;
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.evaluation-v2-page .criterion-card > .checkbox-row {
+  grid-column: 1;
+  align-self: end;
+  margin: 0;
+  color: #6f8397;
+  font-size: 0.62rem;
+}
+
+.evaluation-v2-page .rating-control {
+  grid-column: 2;
+  align-self: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.evaluation-v2-page .rating-control legend {
+  margin-bottom: 0.4rem;
+  color: #6f8397;
+  font-size: 0.59rem;
+  font-weight: 760;
+}
+
+.evaluation-v2-page .rating-control label {
+  min-width: 42px;
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.evaluation-v2-page .content-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.evaluation-v2-page .content-grid > div {
+  padding: 0.65rem 0.72rem;
+  border: 1px solid #e6edf3;
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.evaluation-v2-page .content-grid strong {
+  color: #3c5a74;
+  font-size: 0.61rem;
+}
+
+.evaluation-v2-page .content-grid p {
+  margin: 0.25rem 0 0;
+  color: #7b8d9f;
+  font-size: 0.61rem;
+  line-height: 1.45;
+}
+
+.evaluation-v2-page .evidence-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #edf2f6;
+}
+
+.evaluation-v2-page .project-evaluation-section {
+  border-color: #dfe8f1;
+}
+
+.evaluation-v2-page .project-evaluation-section > .panel-heading {
+  background: #fbfdff;
+}
+
+.evaluation-v2-page .project-metric-card {
+  border-left: 1px solid #e0e8f0;
+}
+
+.evaluation-v2-page .model-total-chip {
+  min-width: 58px;
+  text-align: center;
+}
+
+.evaluation-v2-page .form-actions,
+.evaluation-v2-page .evaluation-actions,
+.evaluation-v2-page > .button-row {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 4;
+  padding: 0.8rem;
+  border: 1px solid #dce6ef;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 30px rgba(25, 52, 78, 0.12);
+  backdrop-filter: blur(8px);
+}
+
 @media (max-width: 1100px) {
   .session-weight-models,
   .tutor-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cycle-editor-list > article { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .evaluation-v2-page .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
@@ -141,4 +453,24 @@
   .cycle-add-form,
   .cycle-editor-list > article,
   .tutor-cycle-filter { grid-template-columns: 1fr; }
+
+  .evaluation-v2-page .evaluation-dynamic-header,
+  .evaluation-v2-page .criterion-card,
+  .evaluation-v2-page .form-grid,
+  .evaluation-v2-page .content-grid,
+  .evaluation-v2-page .evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evaluation-v2-page .score-pill {
+    width: 100%;
+  }
+
+  .evaluation-v2-page .criterion-copy,
+  .evaluation-v2-page .criterion-card > .checkbox-row,
+  .evaluation-v2-page .rating-control,
+  .evaluation-v2-page .content-grid,
+  .evaluation-v2-page .evidence-grid {
+    grid-column: 1;
+  }
 }
