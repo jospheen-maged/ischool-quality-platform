@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Profile, UserRole } from '../types';
@@ -42,17 +42,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState('');
 
+  const activeUserId = useRef<string | null>(null);
+  const profileRequest = useRef(0);
+  const mountedRef = useRef(false);
+
   async function loadProfile(user: User) {
+    const request = ++profileRequest.current;
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, email, role, tutor_id, is_active, permissions')
       .eq('id', user.id)
       .maybeSingle();
 
+    // Ignore an old lookup after sign-out, an account switch, or a newer lookup.
+    if (!mountedRef.current || activeUserId.current !== user.id || request !== profileRequest.current) return;
+
     if (error) {
       console.warn('Profile lookup failed; using least-privilege authenticated fallback.', error);
       setAuthError('Your account is signed in, but the profile record could not be loaded.');
-      setProfile(fallbackProfile(user));
+      setProfile((current) => current?.id === user.id ? current : fallbackProfile(user));
       return;
     }
 
@@ -66,44 +74,64 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let mounted = true;
+    let authEventReceived = false;
+    mountedRef.current = true;
 
-    async function initialise() {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        if (!mounted) return;
-        setSession(data.session);
-        if (data.session?.user) await loadProfile(data.session.user);
-      } catch (caught) {
-        console.error('Authentication startup failed.', caught);
-        if (mounted) setAuthError(caught instanceof Error ? caught.message : 'Unable to initialise authentication.');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-
-    void initialise();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    function applySession(nextSession: Session | null) {
       if (!mounted) return;
+      const nextUserId = nextSession?.user.id ?? null;
+      const identityChanged = activeUserId.current !== nextUserId;
+      activeUserId.current = nextUserId;
       setSession(nextSession);
-      setProfile(null);
       setAuthError('');
 
+      if (!nextSession) {
+        ++profileRequest.current;
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      // A token refresh or tab refocus must not unmount the current page.
+      // Only clear the profile when the signed-in identity actually changes.
+      if (identityChanged) {
+        ++profileRequest.current;
+        setProfile(null);
+        setLoading(true);
+      }
+
       window.setTimeout(() => {
-        if (!mounted) return;
-        if (nextSession?.user) {
-          void loadProfile(nextSession.user).finally(() => {
-            if (mounted) setLoading(false);
-          });
-        } else {
-          setLoading(false);
-        }
+        if (!mounted || activeUserId.current !== nextUserId) return;
+        void loadProfile(nextSession.user).catch((caught) => {
+          if (mounted && activeUserId.current === nextUserId) {
+            setAuthError(caught instanceof Error ? caught.message : 'Unable to load your profile.');
+          }
+        }).finally(() => {
+          if (mounted && activeUserId.current === nextUserId) setLoading(false);
+        });
       }, 0);
+    }
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      authEventReceived = true;
+      applySession(nextSession);
+    });
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      // An auth event is newer than this startup read and takes precedence.
+      if (!mounted || authEventReceived) return;
+      if (error) throw error;
+      applySession(data.session);
+    }).catch((caught) => {
+      if (!mounted || authEventReceived) return;
+      setAuthError(caught instanceof Error ? caught.message : 'Unable to initialise authentication.');
+      setLoading(false);
     });
 
     return () => {
       mounted = false;
+      mountedRef.current = false;
+      ++profileRequest.current;
       listener.subscription.unsubscribe();
     };
   }, []);

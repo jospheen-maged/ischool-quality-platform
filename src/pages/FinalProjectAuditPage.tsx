@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type SetStateAction } from 'react';
 import { supabase } from '../lib/supabase';
 import '../final-project-audit.css';
+import { useFormDraft } from '../lib/useFormDraft';
+import { FormDraftStatus } from '../components/FormDraftStatus';
 
 type TutorOption = { id: string; employee_code: string; full_name: string };
 type OrgOption = { id: string; name: string };
@@ -111,9 +113,11 @@ export function FinalProjectAuditPage() {
   const [tutors, setTutors] = useState<TutorOption[]>([]);
   const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [cycles, setCycles] = useState<CycleOption[]>([]);
-  const [meta, setMeta] = useState(emptyMeta);
-  const [feedbackChecks, setFeedbackChecks] = useState(emptyChecks);
-  const [items, setItems] = useState<ChecklistItem[]>(categoryConfig.map((category) => makeItem(category.key)));
+  const draft = useFormDraft('final-project-audit', { meta: emptyMeta, feedbackChecks: emptyChecks, items: categoryConfig.map((category) => makeItem(category.key)) });
+  const { meta, feedbackChecks, items } = draft.values;
+  const setMeta = (update: SetStateAction<typeof emptyMeta>) => draft.setField('meta', update);
+  const setFeedbackChecks = (update: SetStateAction<typeof emptyChecks>) => draft.setField('feedbackChecks', update);
+  const setItems = (update: SetStateAction<ChecklistItem[]>) => draft.setField('items', update);
   const [recentAudits, setRecentAudits] = useState<RecentAudit[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -197,9 +201,11 @@ export function FinalProjectAuditPage() {
 
   function resetForm() {
     const defaultCycle = cycles.find((cycle) => cycle.is_default) ?? cycles.find((cycle) => cycle.status === 'active');
-    setMeta({ ...emptyMeta, cycleId: defaultCycle?.id ?? '' });
-    setFeedbackChecks(emptyChecks);
-    setItems(categoryConfig.map((category) => makeItem(category.key)));
+    draft.clearDraft({
+      meta: { ...emptyMeta, cycleId: defaultCycle?.id ?? '' },
+      feedbackChecks: emptyChecks,
+      items: categoryConfig.map((category) => makeItem(category.key)),
+    });
   }
 
   async function saveAudit(finalize: boolean) {
@@ -306,6 +312,7 @@ export function FinalProjectAuditPage() {
 
   return (
     <div className="page-stack final-project-audit-page">
+      <FormDraftStatus saved={draft.saved} storageError={draft.storageError} disabled={saving} onDiscard={resetForm} />
       <header className="page-header final-project-audit-header">
         <div>
           <p className="eyebrow">Standalone quality audit</p>

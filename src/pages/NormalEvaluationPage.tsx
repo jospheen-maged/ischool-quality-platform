@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { ComplianceResult, EvaluationCriterion } from '../types';
 import '../evaluation-model-v2.css';
+import { useFormDraft } from '../lib/useFormDraft';
+import { FormDraftStatus } from '../components/FormDraftStatus';
 
 type TutorOption = { id: string; employee_code: string; full_name: string };
 type OrgOption = { id: string; name: string };
@@ -91,9 +93,11 @@ export function NormalEvaluationPage() {
   const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [cycles, setCycles] = useState<CycleOption[]>([]);
   const [weights, setWeights] = useState<ModelWeights>(defaultWeights);
-  const [metadata, setMetadata] = useState(emptyMetadata);
-  const [feedback, setFeedback] = useState(emptyFeedback);
-  const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  const draft = useFormDraft('normal-evaluation', { metadata: emptyMetadata, feedback: emptyFeedback, answers: {} as Record<string, Answer> });
+  const { metadata, feedback, answers } = draft.values;
+  const setMetadata = (update: SetStateAction<typeof emptyMetadata>) => draft.setField('metadata', update);
+  const setFeedback = (update: SetStateAction<FeedbackState>) => draft.setField('feedback', update);
+  const setAnswers = (update: SetStateAction<Record<string, Answer>>) => draft.setField('answers', update);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -123,7 +127,7 @@ export function NormalEvaluationPage() {
         setWeights(settingsResult.data as ModelWeights);
         setCycles(loadedCycles);
         const defaultCycle = loadedCycles.find((cycle) => cycle.is_default) ?? loadedCycles.find((cycle) => cycle.status === 'active');
-        if (defaultCycle) setMetadata((current) => ({ ...current, cycleId: defaultCycle.id }));
+        if (defaultCycle) setMetadata((current) => ({ ...current, cycleId: current.cycleId || defaultCycle.id }));
       }
       setLoading(false);
     }
@@ -293,6 +297,7 @@ export function NormalEvaluationPage() {
         if (feedbackError) throw feedbackError;
       }
 
+      draft.clearDraft();
       navigate('/reviews', {
         replace: true,
         state: { notice: status === 'draft' ? 'Draft saved.' : 'Session evaluation submitted.' },
@@ -316,6 +321,10 @@ export function NormalEvaluationPage() {
 
   return (
     <form className="page-stack evaluation-v2-page session-only-evaluation" onSubmit={handleSubmit}>
+      <FormDraftStatus saved={draft.saved} storageError={draft.storageError} disabled={saving} onDiscard={() => {
+        draft.clearDraft({ metadata: emptyMetadata, feedback: emptyFeedback, answers: {} });
+        setError('');
+      }} />
       <header className="page-header evaluation-dynamic-header">
         <div>
           <p className="eyebrow">QC workspace · Session observation</p>
